@@ -56,7 +56,6 @@ def main():
 
     print('\nevaluate the prediction(train data).')
     train_conf = confusion_matrix(train_label, train_pred)
-    train_conf = np.array_str(train_conf)
     print(train_conf)
     train_precision = precision_score(train_label, train_pred, average=None)
     train_recall = recall_score(train_label, train_pred, average=None)

@@ -10,6 +10,6 @@
   },
   "classifier": {
     "method": "lr",
-    "n_iterations": 300
+    "n_iterations": 600
   }
 }
