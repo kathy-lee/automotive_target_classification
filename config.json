@@ -1,0 +1,15 @@
+{
+  "root_dir": "/home/kangle/dataset/PedBicCarData",
+  "sample_rate": {
+    "sample_rate_t": 2,
+    "sample_rate_f": 2
+  },
+  "dimension_reduction":{
+    "method": "pca",
+    "n_components": 1000
+  },
+  "classifier": {
+    "method": "lr",
+    "n_iterations": 300
+  }
+}

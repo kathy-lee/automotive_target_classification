@@ -25,7 +25,7 @@ for i in range(1,21):
     #imgplot = plt.imshow(train_data_part[7, 0, :, :])
     #plt.show()
     train_data_part = np.array(train_data_part)
-    train_data_part = train_data_part[:,:,0::2,0::2]
+    train_data_part = train_data_part[:,:,0::2,0::3]
     train_data_raw = np.vstack([train_data_raw, train_data_part]) if train_data_raw.size else train_data_part
 
 print(train_data_raw.shape)
@@ -52,7 +52,7 @@ for i in range(1,6):
     #imgplot = plt.imshow(test_data_part[7, 0, :, :])
     #plt.show()
     test_data_part = np.array(test_data_part)
-    test_data_part = test_data_part[:,:,0::2,0::2]
+    test_data_part = test_data_part[:,:,0::2,0::3]
     test_data_raw = np.vstack([test_data_raw, test_data_part]) if test_data_raw.size else test_data_part
 
 print(test_data_raw.shape)
@@ -83,7 +83,7 @@ train_feature = lda.transform(train_data)
 print(train_feature.shape)
 
 print('\nbegin Logistic Regression.')
-lr = LogisticRegression(solver='lbfgs',multi_class='multinomial',max_iter=600)
+lr = LogisticRegression(solver='lbfgs',multi_class='multinomial',max_iter=100)
 lr.fit(train_feature,train_label)
 
 print('\npredict for test data.')
