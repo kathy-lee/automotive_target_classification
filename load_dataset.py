@@ -10,7 +10,9 @@ algo_map = {
     'lda': {"module": "sklearn.discriminant_analysis", "function": "LinearDiscriminantAnalysis"},
     'ica': {"module": "sklearn.decomposition", "function": "FastICA"},
     'lr':  {"module": "sklearn.linear_model", "function": "LogisticRegression",
-            "parameters": {"solver": 'lbfgs', "multi_class": 'multinomial'}}
+            "parameters": {"solver": 'lbfgs', "multi_class": 'multinomial'}},
+    'svm': {"module": "sklearn.svm", "function": "SVC",
+            "parameters": {"C": 5, "kernal": "rbf", "gamma": 5}}
 }
 
 def read_file(index, type, rootDir):

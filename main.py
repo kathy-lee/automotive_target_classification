@@ -8,6 +8,7 @@ import numpy as np
 import importlib
 from sklearn.metrics import confusion_matrix, precision_score, recall_score
 import matplotlib.pyplot as plt
+from sklearn.preprocessing import MinMaxScaler
 
 def main():
     parser = argparse.ArgumentParser()
@@ -31,6 +32,10 @@ def main():
     algo_map[classify_method]["parameters"]["max_iter"] = num_iter
 
     train_data, train_label, test_data, test_label = load_data(data_dir, samp_rate_t, samp_rate_f)
+
+    scaler = MinMaxScaler()
+    train_data = scaler.fit_transform(train_data)
+    test_data = scaler.fit_transform(test_data)
 
     print('\nbegin dimensionality reduction process.')
     module = importlib.import_module(algo_map[dim_reducer]["module"])
