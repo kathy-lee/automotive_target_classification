@@ -59,8 +59,11 @@ def write_log(paramset, result):
         # write configuration parameters
         f.write("sample rate in time axis: %d\n" % paramset["sample_rate"]["sample_rate_t"])
         f.write("sample rate in frequency axis: %d\n" % paramset["sample_rate"]["sample_rate_f"])
-        f.write("dimension reduciton method: %s\n" % paramset["dimension_reduction"]["method"])
-        f.write("dimension reduction method: %d\n" % paramset["dimension_reduction"]["n_components"])
+        f.write("dimension reduction method: %s\n" % paramset["dimension_reduction"]["method"])
+        f.write("dimension after reduction: %d\n" % paramset["dimension_reduction"]["n_components"])
+        f.write("%s parameters: \n" % paramset["dimension_reduction"]["method"])
+        for key, value in paramset["dimension_reduction"]["parameters"].items():
+            f.write("%s : %s" % (key,str(value)) )
         f.write("classifier method: %s\n" % paramset["classifier"]["method"])
         f.write("num of iterations: %d\n" % paramset["classifier"]["n_iterations"])
 
@@ -70,7 +73,7 @@ def write_log(paramset, result):
         train_conf = np.array_str(result["train_conf"])
         f.write(train_conf)
         train_precision = np.array_str(result["train_precision"])
-        f.write("average precision score: %s\n" % train_precision)
+        f.write("\naverage precision score: %s\n" % train_precision)
         train_recall = np.array_str(result["train_recall"])
         f.write("average recall score: %s\n" % train_recall)
 
@@ -79,7 +82,7 @@ def write_log(paramset, result):
         test_conf = np.array_str(result["test_conf"])
         f.write(test_conf)
         test_precision = np.array_str(result["test_precision"])
-        f.write("average precision score: %s\n" % test_precision)
+        f.write("\naverage precision score: %s\n" % test_precision)
         test_recall = np.array_str(result["test_recall"])
         f.write("average recall score: %s\n" % test_recall)
     return filename

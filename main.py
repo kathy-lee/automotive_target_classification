@@ -10,7 +10,8 @@ from sklearn.metrics import confusion_matrix, precision_score, recall_score
 import matplotlib.pyplot as plt
 
 algo_map = {
-    'pca': {"module": "sklearn.decomposition", "function": "PCA"},
+    'pca': {"module": "sklearn.decomposition", "function": "PCA",
+            "parameters": {"svd_solver": "randomized", "whiten": True} },
     'lda': {"module": "sklearn.discriminant_analysis", "function": "LinearDiscriminantAnalysis"},
     'ica': {"module": "sklearn.decomposition", "function": "FastICA"},
     'lr':  {"module": "sklearn.linear_model", "function": "LogisticRegression"}
@@ -31,6 +32,7 @@ def main():
     samp_rate_f = paramset["sample_rate"]["sample_rate_f"]
     dim_reducer = paramset["dimension_reduction"]["method"]
     num_components = paramset["dimension_reduction"]["n_components"]
+    algo_map[dim_reducer]["parameters"]["n_components"] = num_components
     classify_method = paramset["classifier"]["method"]
     num_iter = paramset["classifier"]["n_iterations"]
 
@@ -38,7 +40,7 @@ def main():
 
     print('\nbegin dimensionality reduction process.')
     module = importlib.import_module(algo_map[dim_reducer]["module"])
-    reducer = getattr(module, algo_map[dim_reducer]["function"])(n_components=num_components)
+    reducer = getattr(module, algo_map[dim_reducer]["function"])(**algo_map[dim_reducer]["parameters"])
     reducer.fit(train_data)
     train_feature = reducer.transform(train_data)
     print(train_feature.shape)
@@ -64,7 +66,6 @@ def main():
 
     print('\nevaluate the prediction(test data).')
     test_conf = confusion_matrix(test_label, test_pred)
-    test_conf = np.array_str(test_conf)
     print(test_conf)
     test_precision = precision_score(test_label, test_pred, average=None)
     test_recall = recall_score(test_label, test_pred, average=None)
