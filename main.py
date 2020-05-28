@@ -1,5 +1,5 @@
 import argparse
-from load_dataset import load_data, write_log
+from load_dataset import load_data, write_log, algo_map
 import json
 import numpy as np
 #from sklearn.linear_model import LogisticRegression
@@ -9,13 +9,6 @@ import importlib
 from sklearn.metrics import confusion_matrix, precision_score, recall_score
 import matplotlib.pyplot as plt
 
-algo_map = {
-    'pca': {"module": "sklearn.decomposition", "function": "PCA",
-            "parameters": {"svd_solver": "randomized", "whiten": True} },
-    'lda': {"module": "sklearn.discriminant_analysis", "function": "LinearDiscriminantAnalysis"},
-    'ica': {"module": "sklearn.decomposition", "function": "FastICA"},
-    'lr':  {"module": "sklearn.linear_model", "function": "LogisticRegression"}
-}
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--config', help='pipeline configuration.', type=str)
@@ -35,6 +28,7 @@ def main():
     algo_map[dim_reducer]["parameters"]["n_components"] = num_components
     classify_method = paramset["classifier"]["method"]
     num_iter = paramset["classifier"]["n_iterations"]
+    algo_map[classify_method]["parameters"]["max_iter"] = num_iter
 
     train_data, train_label, test_data, test_label = load_data(data_dir, samp_rate_t, samp_rate_f)
 
@@ -49,7 +43,7 @@ def main():
 
     print('\nbegin training process.')
     module = importlib.import_module(algo_map[classify_method]["module"])
-    classifier = getattr(module, algo_map[classify_method]["function"])(solver='lbfgs', multi_class='multinomial', max_iter=num_iter)
+    classifier = getattr(module, algo_map[classify_method]["function"])(**algo_map[classify_method]["parameters"])
     classifier.fit(train_feature, train_label)
 
     print('\npredict for test data.')
@@ -81,7 +75,7 @@ def main():
         "test_recall": test_recall
     }
 
-    print('\nwrite log.')
+    print('\nwgenerate report file \t')
     logFile = write_log(paramset, pred_result)
     print(logFile)
 

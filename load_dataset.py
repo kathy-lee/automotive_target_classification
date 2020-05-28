@@ -4,6 +4,15 @@ import matplotlib.pyplot as plt
 import numpy as np
 import time
 
+algo_map = {
+    'pca': {"module": "sklearn.decomposition", "function": "PCA",
+            "parameters": {"svd_solver": "randomized", "whiten": True}},
+    'lda': {"module": "sklearn.discriminant_analysis", "function": "LinearDiscriminantAnalysis"},
+    'ica': {"module": "sklearn.decomposition", "function": "FastICA"},
+    'lr':  {"module": "sklearn.linear_model", "function": "LogisticRegression",
+            "parameters": {"solver": 'lbfgs', "multi_class": 'multinomial'}}
+}
+
 def read_file(index, type, rootDir):
     file_index = "{0:02d}".format(index)
     if index == 0:
@@ -57,15 +66,20 @@ def write_log(paramset, result):
     filename = "log" + str(epoch_time) + ".txt"
     with open(filename, "w+") as f:
         # write configuration parameters
-        f.write("sample rate in time axis: %d\n" % paramset["sample_rate"]["sample_rate_t"])
-        f.write("sample rate in frequency axis: %d\n" % paramset["sample_rate"]["sample_rate_f"])
+        current_time = time.strftime("%d. %m. %Y. %H:%M:%S", time.localtime())
+        f.write(current_time)
+        f.write("resample in time axis: %d\n" % paramset["sample_rate"]["sample_rate_t"])
+        f.write("resample in frequency axis: %d\n\n" % paramset["sample_rate"]["sample_rate_f"])
         f.write("dimension reduction method: %s\n" % paramset["dimension_reduction"]["method"])
         f.write("dimension after reduction: %d\n" % paramset["dimension_reduction"]["n_components"])
         f.write("%s parameters: \n" % paramset["dimension_reduction"]["method"])
-        for key, value in paramset["dimension_reduction"]["parameters"].items():
-            f.write("%s : %s" % (key,str(value)) )
+        for key, value in algo_map[paramset["dimension_reduction"]["method"]]["parameters"].items():
+            f.write("\t%s : %s\n" % (key,str(value)))
         f.write("classifier method: %s\n" % paramset["classifier"]["method"])
         f.write("num of iterations: %d\n" % paramset["classifier"]["n_iterations"])
+        f.write("%s parameters: \n" % paramset["classifier"]["method"])
+        for key, value in algo_map[paramset["classifier"]["method"]]["parameters"].items():
+            f.write("\t%s : %s\n" % (key,str(value)))
 
         # write train/test results
         f.write("\ntraining performance: \n")
