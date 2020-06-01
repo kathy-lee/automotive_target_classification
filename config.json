@@ -6,10 +6,10 @@
   },
   "dimension_reduction":{
     "method": "pca",
-    "n_components": 1000
+    "n_components": 30
   },
   "classifier": {
-    "method": "lr",
-    "n_iterations": 600
+    "method": "svm",
+    "n_iterations": -1
   }
 }

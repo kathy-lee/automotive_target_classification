@@ -12,7 +12,17 @@ algo_map = {
     'lr':  {"module": "sklearn.linear_model", "function": "LogisticRegression",
             "parameters": {"solver": 'lbfgs', "multi_class": 'multinomial'}},
     'svm': {"module": "sklearn.svm", "function": "SVC",
-            "parameters": {"C": 5, "kernal": "rbf", "gamma": 5}}
+            "parameters": {"C": 10, "kernel": "rbf", "gamma": 0.1}},
+    'decision tree': {"module": "sklearn.tree", "function": "DecisionTreeClassifier",
+                      "parameters": {"max_depth": 50}},
+    'knn': {"module": "sklearn.neighgors", "function": "KNeighborsClassifier",
+            "parameters": {"n_neighbors": 5}},
+    'random forest': {"module": "sklearn.ensemble", "function": "RandomForestClassifier",
+                      "parameters": {"n_estimators": 100, "bootstrap": True, "max_samples": 0.5, "max_features": 0.5}},
+    'ada boost': {"module": "sklearn.ensemble", "function": "AdaBosstClassifier",
+                  "parameters": {"base_estimator": "DecisionTreeClassifier(max_depth)=1", "n_estimators": 100, "learning_rate": 0.1}},
+    'gradient boost': {"module": "sklearn.ensemble", "function": "GradientBoostingClassifier",
+                       "parameters": {"n_estimators": 100, "learning_rate": 0.1}}
 }
 
 def read_file(index, type, rootDir):
@@ -68,7 +78,7 @@ def write_log(paramset, result):
     filename = "log" + str(epoch_time) + ".txt"
     with open(filename, "w+") as f:
         # write configuration parameters
-        current_time = time.strftime("%d. %m. %Y. %H:%M:%S", time.localtime())
+        current_time = time.strftime("%d. %m. %Y. %H:%M:%S\n\n", time.localtime())
         f.write(current_time)
         f.write("resample in time axis: %d\n" % paramset["sample_rate"]["sample_rate_t"])
         f.write("resample in frequency axis: %d\n\n" % paramset["sample_rate"]["sample_rate_f"])

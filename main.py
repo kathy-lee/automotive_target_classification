@@ -2,9 +2,6 @@ import argparse
 from load_dataset import load_data, write_log, algo_map
 import json
 import numpy as np
-#from sklearn.linear_model import LogisticRegression
-#from sklearn.decomposition import PCA
-#from sklearn.decomposition import FastICA
 import importlib
 from sklearn.metrics import confusion_matrix, precision_score, recall_score
 import matplotlib.pyplot as plt
@@ -84,9 +81,6 @@ def main():
     logFile = write_log(paramset, pred_result)
     print(logFile)
 
-    # plt.plot(pca.explained_variance_ratio_)
-    # plt.plot(np.cumsum(pca.explained_variance_ratio_))
-    # plt.show()
 
 if __name__ =="__main__":
     main()
