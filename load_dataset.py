@@ -10,7 +10,7 @@ algo_map = {
     'lda': {"module": "sklearn.discriminant_analysis", "function": "LinearDiscriminantAnalysis"},
     'ica': {"module": "sklearn.decomposition", "function": "FastICA"},
     'lr':  {"module": "sklearn.linear_model", "function": "LogisticRegression",
-            "parameters": {"solver": 'lbfgs', "multi_class": 'multinomial'}},
+            "parameters": {"solver": 'lbfgs', "multi_class": 'multinomial', "max_iter": 500}},
     'svm': {"module": "sklearn.svm", "function": "SVC",
             "parameters": {"C": 10, "kernel": "rbf", "gamma": 0.1}},
     'decision tree': {"module": "sklearn.tree", "function": "DecisionTreeClassifier",
@@ -88,7 +88,7 @@ def write_log(paramset, result):
         for key, value in algo_map[paramset["dimension_reduction"]["method"]]["parameters"].items():
             f.write("\t%s : %s\n" % (key,str(value)))
         f.write("classifier method: %s\n" % paramset["classifier"]["method"])
-        f.write("num of iterations: %d\n" % paramset["classifier"]["n_iterations"])
+        #f.write("num of iterations: %d\n" % paramset["classifier"]["n_iterations"])
         f.write("%s parameters: \n" % paramset["classifier"]["method"])
         for key, value in algo_map[paramset["classifier"]["method"]]["parameters"].items():
             f.write("\t%s : %s\n" % (key,str(value)))

@@ -25,8 +25,8 @@ def main():
     num_components = paramset["dimension_reduction"]["n_components"]
     algo_map[dim_reducer]["parameters"]["n_components"] = num_components
     classify_method = paramset["classifier"]["method"]
-    num_iter = paramset["classifier"]["n_iterations"]
-    algo_map[classify_method]["parameters"]["max_iter"] = num_iter
+    #num_iter = paramset["classifier"]["n_iterations"]
+    #algo_map[classify_method]["parameters"]["max_iter"] = num_iter
 
     train_data, train_label, test_data, test_label = load_data(data_dir, samp_rate_t, samp_rate_f)
 
@@ -44,6 +44,7 @@ def main():
     print(test_feature.shape)
 
     print('\nbegin training process.')
+    #module = importlib.import_module(algo_map[classify_method]["module"])
     module = importlib.import_module(algo_map[classify_method]["module"])
     classifier = getattr(module, algo_map[classify_method]["function"])(**algo_map[classify_method]["parameters"])
     classifier.fit(train_feature, train_label)
