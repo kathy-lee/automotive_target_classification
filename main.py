@@ -78,7 +78,7 @@ def main():
         "test_recall": test_recall
     }
 
-    print('\nwgenerate report file \t')
+    print('\ngenerate report file \t')
     logFile = write_log(paramset, pred_result)
     print(logFile)
 

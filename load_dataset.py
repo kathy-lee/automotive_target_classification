@@ -14,13 +14,13 @@ algo_map = {
     'svm': {"module": "sklearn.svm", "function": "SVC",
             "parameters": {"C": 10, "kernel": "rbf", "gamma": 0.1}},
     'decision tree': {"module": "sklearn.tree", "function": "DecisionTreeClassifier",
-                      "parameters": {"max_depth": 50}},
-    'knn': {"module": "sklearn.neighgors", "function": "KNeighborsClassifier",
+                      "parameters": {"max_depth": 40, "min_samples_split": 0.5, "min_samples_leaf": 1}},
+    'knn': {"module": "sklearn.neighbors", "function": "KNeighborsClassifier",
             "parameters": {"n_neighbors": 5}},
     'random forest': {"module": "sklearn.ensemble", "function": "RandomForestClassifier",
                       "parameters": {"n_estimators": 100, "bootstrap": True, "max_samples": 0.5, "max_features": 0.5}},
-    'ada boost': {"module": "sklearn.ensemble", "function": "AdaBosstClassifier",
-                  "parameters": {"base_estimator": "DecisionTreeClassifier(max_depth)=1", "n_estimators": 100, "learning_rate": 0.1}},
+    'ada boost': {"module": "sklearn.ensemble", "function": "AdaBoostClassifier",
+                  "parameters": {"n_estimators": 100, "learning_rate": 0.1}},
     'gradient boost': {"module": "sklearn.ensemble", "function": "GradientBoostingClassifier",
                        "parameters": {"n_estimators": 100, "learning_rate": 0.1}}
 }
