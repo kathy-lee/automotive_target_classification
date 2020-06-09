@@ -22,7 +22,9 @@ algo_map = {
     'ada boost': {"module": "sklearn.ensemble", "function": "AdaBoostClassifier",
                   "parameters": {"n_estimators": 100, "learning_rate": 0.1}},
     'gradient boost': {"module": "sklearn.ensemble", "function": "GradientBoostingClassifier",
-                       "parameters": {"n_estimators": 100, "learning_rate": 0.1}}
+                       "parameters": {"n_estimators": 200, "learning_rate": 0.1}},
+    'xgboost': {"module": "xgboost", "function": "XGBClassifier",
+                "parameters": {"learning_rate": 0.1}}
 }
 
 def read_file(index, type, rootDir):

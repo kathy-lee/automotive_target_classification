@@ -1,6 +1,6 @@
 from sklearn.ensemble import GradientBoostingClassifier
 from xgboost import XGBClassifier
-from sklearn.decomposition import PCA
+from sklearn.decomposition import PCA, KernelPCA, SparsePCA
 from sklearn.metrics import confusion_matrix, precision_score, recall_score
 import matplotlib.pyplot as plt
 import numpy as np
@@ -17,17 +17,39 @@ train_data = scaler.fit_transform(train_data)
 test_data = scaler.transform(test_data)
 
 print('\nbegin PCA process.')
-pca = PCA(n_components=30, svd_solver='randomized', whiten=True).fit(train_data)
+#pca = PCA(n_components=1000, svd_solver='randomized', whiten=True).fit(train_data)
+#pca = KernelPCA(n_components=30, kernel='rbf', eigen_solver='arpack', n_jobs=8).fit(train_data)
+pca = SparsePCA(n_components=50,n_jobs=4).fit(train_data)
 train_feature = pca.transform(train_data)
 print(train_feature.shape)
 
+# plt.plot(pca.explained_variance_ratio_)
+# plt.plot(np.cumsum(pca.explained_variance_ratio_))
+# plt.show()
+
+# pca = PCA()
+# pca.fit(train_data)
+# cumsum = np.cumsum(pca.explained_variance_ratio_)
+# d = np.argmax(cumsum >= 0.95) + 1
+
 print('\nbegin gradient boosting classification.')
-param_grid = {'n_estimators': [100, 200, 300],
-              'learning_rate': [0.001, 0.01,0.1]}
+param_grid = {'n_estimators': [300,400],
+              'learning_rate': [0.1],
+              'max_depth': [5]}
 #classifier = GridSearchCV(GradientBoostingClassifier(), param_grid)
-classifier = GridSearchCV(XGBClassifier(), param_grid)
+#classifier = GridSearchCV(XGBClassifier(), param_grid)
+classifier = XGBClassifier()
 classifier.fit(train_feature, train_label)
 print("The best parameters are %s with a score of %0.2f" % (classifier.best_params_, classifier.best_score_))
+
+# cv_params = {'n_estimators': [400, 500]}
+# other_params = {'learning_rate': 0.1, 'n_estimators': 500, 'max_depth': 5, 'min_child_weight': 1, 'seed': 0,
+#                 'subsample': 0.8, 'colsample_bytree': 0.8, 'gamma': 0, 'reg_alpha': 0, 'reg_lambda': 1}
+# model = XGBClassifier(**other_params)
+# classifier = GridSearchCV(estimator=model, param_grid=cv_params, scoring='r2', cv=3, verbose=1, n_jobs=8)
+# classifier.fit(train_feature, train_label)
+# print("The best parameters are %s with a score of %0.2f" % (classifier.best_params_, classifier.best_score_))
+
 
 print('\npredict for test data.')
 test_feature = pca.transform(test_data)
@@ -51,8 +73,6 @@ score_recall = recall_score(test_label, test_pred, average=None)
 print(score_precision)
 print(score_recall)
 
-plt.plot(pca.explained_variance_ratio_)
-plt.plot(np.cumsum(pca.explained_variance_ratio_))
-plt.show()
+
 
 
