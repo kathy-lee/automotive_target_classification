@@ -1,0 +1,10 @@
+{
+  "root_dir": "/home/kangle/dataset/PedBicCarData",
+  "sample_rate": {
+    "sample_rate_t": 4,
+    "sample_rate_f": 5
+  },
+  "classifier": {
+    "method": "xgboost"
+  }
+}
