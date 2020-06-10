@@ -24,7 +24,9 @@ algo_map = {
     'gradient boost': {"module": "sklearn.ensemble", "function": "GradientBoostingClassifier",
                        "parameters": {"n_estimators": 200, "learning_rate": 0.1}},
     'xgboost': {"module": "xgboost", "function": "XGBClassifier",
-                "parameters": {"learning_rate": 0.1}}
+                "parameters": {"learning_rate": 0.1,"n_estimators": 300, "max_depth": 5, "min_child_weight": 1,
+                               "gamma": 0, "subsample": 0.8, "colsample_bytree": 0.8, "objective": 'binary:logistic',
+                               "nthread": 4, "scale_pos_weight": 1, "seed": 27}}
 }
 
 def read_file(index, type, rootDir):
@@ -49,15 +51,15 @@ def load_data(rootDir, sampRateT, sampRateF):
         train_data_raw = np.vstack([train_data_raw, dataBlock]) if train_data_raw.size else dataBlock
 
     print(train_data_raw.shape)
-    #imgplot = plt.imshow(train_data_raw[7, 0, :, :])
-    #plt.show()
+    imgplot = plt.imshow(train_data_raw[10, 0, :, :])
+    plt.show()
     train_data = train_data_raw.reshape(train_data_raw.shape[0], -1)
     print(train_data.shape)
 
     test_data_raw = np.array([])
     for i in range(1,6):
         dataBlock = read_file(i, 'testData', rootDir)
-        dataBlock = dataBlock[:, :, 0::sampRateF, 0::sampRateT]
+        dataBlock = dataBlock[:, :, 0::sampRateT, 0::sampRateF]
         test_data_raw = np.vstack([test_data_raw, dataBlock]) if test_data_raw.size else dataBlock
 
     print(test_data_raw.shape)
@@ -84,13 +86,13 @@ def write_log(paramset, result):
         f.write(current_time)
         f.write("resample in time axis: %d\n" % paramset["sample_rate"]["sample_rate_t"])
         f.write("resample in frequency axis: %d\n\n" % paramset["sample_rate"]["sample_rate_f"])
-        f.write("dimension reduction method: %s\n" % paramset["dimension_reduction"]["method"])
-        f.write("dimension after reduction: %d\n" % paramset["dimension_reduction"]["n_components"])
-        f.write("%s parameters: \n" % paramset["dimension_reduction"]["method"])
-        for key, value in algo_map[paramset["dimension_reduction"]["method"]]["parameters"].items():
-            f.write("\t%s : %s\n" % (key,str(value)))
+        if "dimension_redduction" in paramset:
+            f.write("dimension reduction method: %s\n" % paramset["dimension_reduction"]["method"])
+            f.write("dimension after reduction: %d\n" % paramset["dimension_reduction"]["n_components"])
+            f.write("%s parameters: \n" % paramset["dimension_reduction"]["method"])
+            for key, value in algo_map[paramset["dimension_reduction"]["method"]]["parameters"].items():
+                f.write("\t%s : %s\n" % (key,str(value)))
         f.write("classifier method: %s\n" % paramset["classifier"]["method"])
-        #f.write("num of iterations: %d\n" % paramset["classifier"]["n_iterations"])
         f.write("%s parameters: \n" % paramset["classifier"]["method"])
         for key, value in algo_map[paramset["classifier"]["method"]]["parameters"].items():
             f.write("\t%s : %s\n" % (key,str(value)))

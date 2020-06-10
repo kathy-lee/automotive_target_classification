@@ -5,7 +5,7 @@ import numpy as np
 import importlib
 from sklearn.metrics import confusion_matrix, precision_score, recall_score
 import matplotlib.pyplot as plt
-from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import MinMaxScaler, StandardScaler
 
 def main():
     parser = argparse.ArgumentParser()
@@ -21,37 +21,36 @@ def main():
     data_dir = paramset["root_dir"]
     samp_rate_t = paramset["sample_rate"]["sample_rate_t"]
     samp_rate_f = paramset["sample_rate"]["sample_rate_f"]
-    dim_reducer = paramset["dimension_reduction"]["method"]
-    num_components = paramset["dimension_reduction"]["n_components"]
-    algo_map[dim_reducer]["parameters"]["n_components"] = num_components
-    classify_method = paramset["classifier"]["method"]
-    #num_iter = paramset["classifier"]["n_iterations"]
-    #algo_map[classify_method]["parameters"]["max_iter"] = num_iter
 
     train_data, train_label, test_data, test_label = load_data(data_dir, samp_rate_t, samp_rate_f)
 
-    scaler = MinMaxScaler()
+    #scaler = MinMaxScaler()
+    scaler = StandardScaler()
     train_data = scaler.fit_transform(train_data)
     test_data = scaler.fit_transform(test_data)
 
-    print('\nbegin dimensionality reduction process.')
-    module = importlib.import_module(algo_map[dim_reducer]["module"])
-    reducer = getattr(module, algo_map[dim_reducer]["function"])(**algo_map[dim_reducer]["parameters"])
-    reducer.fit(train_data)
-    train_feature = reducer.transform(train_data)
-    print(train_feature.shape)
-    test_feature = reducer.transform(test_data)
-    print(test_feature.shape)
+    if "dimension_redduction" in paramset:
+        dim_reducer = paramset["dimension_reduction"]["method"]
+        num_components = paramset["dimension_reduction"]["n_components"]
+        algo_map[dim_reducer]["parameters"]["n_components"] = num_components
+        print('\nbegin dimensionality reduction process.')
+        module = importlib.import_module(algo_map[dim_reducer]["module"])
+        reducer = getattr(module, algo_map[dim_reducer]["function"])(**algo_map[dim_reducer]["parameters"])
+        reducer.fit(train_data)
+        train_data = reducer.transform(train_data)
+        print(train_data.shape)
+        test_data = reducer.transform(test_data)
+        print(test_data.shape)
 
     print('\nbegin training process.')
-    #module = importlib.import_module(algo_map[classify_method]["module"])
+    classify_method = paramset["classifier"]["method"]
     module = importlib.import_module(algo_map[classify_method]["module"])
     classifier = getattr(module, algo_map[classify_method]["function"])(**algo_map[classify_method]["parameters"])
-    classifier.fit(train_feature, train_label)
+    classifier.fit(train_data, train_label)
 
     print('\npredict for test data.')
-    test_pred = classifier.predict(test_feature)
-    train_pred = classifier.predict(train_feature)
+    test_pred = classifier.predict(test_data)
+    train_pred = classifier.predict(train_data)
 
     print('\nevaluate the prediction(train data).')
     train_conf = confusion_matrix(train_label, train_pred)

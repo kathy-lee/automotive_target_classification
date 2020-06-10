@@ -34,7 +34,7 @@ print('\nbegin gradient boosting classification.')
 #classifier = GridSearchCV(GradientBoostingClassifier(), param_grid)
 #classifier = GridSearchCV(XGBClassifier(), param_grid)
 classifier = XGBClassifier( learning_rate =0.1,
- n_estimators=100,
+ n_estimators=300,
  max_depth=5,
  min_child_weight=1,
  gamma=0,
