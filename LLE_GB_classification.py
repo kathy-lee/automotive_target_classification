@@ -28,32 +28,33 @@ train_feature = train_data
 test_feature = test_data
 
 print('\nbegin gradient boosting classification.')
-# param_grid = {'n_estimators': [300,400],
-#               'learning_rate': [0.1],
-#               'max_depth': [5]}
-#classifier = GridSearchCV(GradientBoostingClassifier(), param_grid)
-#classifier = GridSearchCV(XGBClassifier(), param_grid)
-classifier = XGBClassifier( learning_rate =0.1,
- n_estimators=300,
- max_depth=5,
- min_child_weight=1,
- gamma=0,
- subsample=0.8,
- colsample_bytree=0.8,
- objective= 'binary:logistic',
- nthread=4,
- scale_pos_weight=1,
- seed=27)
-classifier.fit(train_feature, train_label)
-#print("The best parameters are %s with a score of %0.2f" % (classifier.best_params_, classifier.best_score_))
-
-# cv_params = {'n_estimators': [400, 500]}
-# other_params = {'learning_rate': 0.1, 'n_estimators': 500, 'max_depth': 5, 'min_child_weight': 1, 'seed': 0,
-#                 'subsample': 0.8, 'colsample_bytree': 0.8, 'gamma': 0, 'reg_alpha': 0, 'reg_lambda': 1}
-# model = XGBClassifier(**other_params)
-# classifier = GridSearchCV(estimator=model, param_grid=cv_params, scoring='r2', cv=3, verbose=1, n_jobs=8)
+# # param_grid = {'n_estimators': [300,400],
+# #               'learning_rate': [0.1],
+# #               'max_depth': [5]}
+# #classifier = GridSearchCV(GradientBoostingClassifier(), param_grid)
+# #classifier = GridSearchCV(XGBClassifier(), param_grid)
+# classifier = XGBClassifier( learning_rate =0.1,
+#  n_estimators=300,
+#  max_depth=5,
+#  min_child_weight=1,
+#  gamma=0,
+#  subsample=0.8,
+#  colsample_bytree=0.8,
+#  objective= 'binary:logistic',
+#  nthread=4,
+#  scale_pos_weight=1,
+#  seed=27)
 # classifier.fit(train_feature, train_label)
-# print("The best parameters are %s with a score of %0.2f" % (classifier.best_params_, classifier.best_score_))
+# #print("The best parameters are %s with a score of %0.2f" % (classifier.best_params_, classifier.best_score_))
+
+cv_params = {'n_estimators': [100,200,300,400,500], 'learning_rate': [0.01, 0.1]}
+other_params = {'learning_rate': 0.1,  'n_estimators': 100, 'max_depth': 5, 'min_child_weight': 1, 'seed': 27, 'nthread': 6,
+                'subsample': 0.8, 'colsample_bytree': 0.8, 'gamma': 0, 'reg_alpha': 0, 'reg_lambda': 1,
+                'objective': 'multi:softmax', 'num_class': 5}
+model = XGBClassifier(**other_params)
+classifier = GridSearchCV(estimator=model, param_grid=cv_params, cv=3, verbose=1, n_jobs=6)
+classifier.fit(train_feature, train_label)
+print("The best parameters are %s with a score of %0.2f" % (classifier.best_params_, classifier.best_score_))
 
 
 print('\npredict for test data.')
