@@ -24,7 +24,7 @@ algo_map = {
     'gradient boost': {"module": "sklearn.ensemble", "function": "GradientBoostingClassifier",
                        "parameters": {"n_estimators": 200, "learning_rate": 0.1}},
     'xgboost': {"module": "xgboost", "function": "XGBClassifier",
-                "parameters": {"learning_rate": 0.1,"n_estimators": 300, "max_depth": 5, "min_child_weight": 1,
+                "parameters": {"learning_rate": 0.1,"n_estimators": 100, "max_depth": 5, "min_child_weight": 1,
                                "gamma": 0, "subsample": 0.8, "colsample_bytree": 0.8, "objective": 'binary:logistic',
                                "nthread": 4, "scale_pos_weight": 1, "seed": 27}}
 }
@@ -50,9 +50,9 @@ def load_data(rootDir, sampRateT, sampRateF):
         dataBlock = dataBlock[:,:,0::sampRateT,0::sampRateF]
         train_data_raw = np.vstack([train_data_raw, dataBlock]) if train_data_raw.size else dataBlock
 
+    train_data_raw = train_data_raw.reshape(train_data_raw.shape[0], train_data_raw.shape[2], train_data_raw.shape[3],
+                                          train_data_raw.shape[1])
     print(train_data_raw.shape)
-    imgplot = plt.imshow(train_data_raw[10, 0, :, :])
-    plt.show()
     train_data = train_data_raw.reshape(train_data_raw.shape[0], -1)
     print(train_data.shape)
 
@@ -62,20 +62,20 @@ def load_data(rootDir, sampRateT, sampRateF):
         dataBlock = dataBlock[:, :, 0::sampRateT, 0::sampRateF]
         test_data_raw = np.vstack([test_data_raw, dataBlock]) if test_data_raw.size else dataBlock
 
+    test_data_raw = test_data_raw.reshape(test_data_raw.shape[0], test_data_raw.shape[2], test_data_raw.shape[3], test_data_raw.shape[1])
     print(test_data_raw.shape)
-    #imgplot = plt.imshow(test_data_raw[7, 0, :, :])
-    #plt.show()
     test_data = test_data_raw.reshape(test_data_raw.shape[0], -1)
     print(test_data.shape)
 
     # read label
     train_label = read_file(0, 'trainLabel', rootDir)
     train_label = train_label.flatten()
+    print(train_label.shape)
 
     test_label = read_file(0, 'testLabel', rootDir)
     test_label = test_label.flatten()
 
-    return train_data, train_label, test_data, test_label
+    return train_data_raw, train_label, test_data_raw, test_label
 
 def write_log(paramset, result):
     epoch_time = int(time.time())

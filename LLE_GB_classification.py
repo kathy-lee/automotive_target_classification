@@ -13,6 +13,13 @@ from sklearn.model_selection import GridSearchCV
 data_dir = '/home/kangle/dataset/PedBicCarData'
 train_data, train_label, test_data, test_label = load_data(data_dir, 4, 5)
 
+print("Data sample distribution in training set: %d %d %d %d %d\n" % (np.count_nonzero(train_label==1),
+      np.count_nonzero(train_label==2), np.count_nonzero(train_label==3),
+      np.count_nonzero(train_label==4), np.count_nonzero(train_label==5)))
+print("Data sample distribution in test set: %d %d %d %d %d\n" % (np.count_nonzero(test_label==1),
+      np.count_nonzero(test_label==2), np.count_nonzero(test_label==3),
+      np.count_nonzero(test_label==4), np.count_nonzero(test_label==5)))
+
 scaler = StandardScaler()
 train_data = scaler.fit_transform(train_data)
 test_data = scaler.transform(test_data)

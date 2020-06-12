@@ -1,5 +1,5 @@
 from sklearn.svm import SVC, LinearSVC
-from sklearn.decomposition import PCA
+from sklearn.decomposition import PCA, KernelPCA
 from sklearn.metrics import confusion_matrix, precision_score, recall_score
 import matplotlib.pyplot as plt
 import numpy as np
@@ -16,15 +16,15 @@ train_data = scaler.fit_transform(train_data)
 test_data = scaler.transform(test_data)
 
 print('\nbegin PCA process.')
-pca = PCA(n_components=30, svd_solver='randomized', whiten=True).fit(train_data)
+#pca = PCA(n_components=30, svd_solver='randomized', whiten=True).fit(train_data)
+pca = KernelPCA(n_components=30, kernel='rbf').fit(train_data)
 train_feature = pca.transform(train_data)
 print(train_feature.shape)
 
 print('\nbegin svm.')
-# param_grid = {'C': [0.1, 1, 10, 100, 1000],
-#               'gamma': [0.0001, 0.001, 0.01, 0.1, 1]}
-param_grid = {'C': [1, 10],
-              'gamma': [0.01, 0.1]}
+
+param_grid = {'C': [0.1, 1, 10, 100, 1000],
+              'gamma': [0.0001, 0.001, 0.01, 0.1, 1]}
 svm = GridSearchCV(SVC(kernel='rbf', class_weight='balanced'), param_grid)
 svm.fit(train_feature, train_label)
 print("The best parameters are %s with a score of %0.2f" % (svm.best_params_, svm.best_score_))
