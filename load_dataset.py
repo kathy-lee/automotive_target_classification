@@ -44,30 +44,31 @@ def read_file(index, type, rootDir):
 
 def load_data(rootDir, sampRateT, sampRateF):
     print('load the data.')
-    train_data_raw = np.array([])
+    train_data = np.array([])
     for i in range(1,21):
         dataBlock = read_file(i, 'trainData', rootDir)
         dataBlock = dataBlock[:,:,0::sampRateT,0::sampRateF]
-        train_data_raw = np.vstack([train_data_raw, dataBlock]) if train_data_raw.size else dataBlock
+        train_data = np.vstack([train_data, dataBlock]) if train_data.size else dataBlock
 
-    train_data_raw = np.transpose(train_data_raw, (0, 3, 2, 1))
-    print(train_data_raw.shape)
-    # for i in range(10):
-    #   plt.imshow(train_data_raw[10*i,:,:,0])
-    #   plt.show()
-    train_data = train_data_raw.reshape(train_data_raw.shape[0], -1)
+    train_data = np.transpose(train_data, (0, 3, 2, 1))
     print(train_data.shape)
+    #train_data = train_data.reshape(train_data.shape[0], -1)
+    #print(train_data.shape)
 
-    test_data_raw = np.array([])
+    # for i in range(10):
+    #   plt.imshow(train_data[10*i,:,:,0])
+    #   plt.show()
+
+    test_data = np.array([])
     for i in range(1,6):
         dataBlock = read_file(i, 'testData', rootDir)
         dataBlock = dataBlock[:, :, 0::sampRateT, 0::sampRateF]
-        test_data_raw = np.vstack([test_data_raw, dataBlock]) if test_data_raw.size else dataBlock
+        test_data = np.vstack([test_data, dataBlock]) if test_data.size else dataBlock
 
-    test_data_raw = np.transpose(test_data_raw, (0, 3, 2, 1))
-    print(test_data_raw.shape)
-    test_data = test_data_raw.reshape(test_data_raw.shape[0], -1)
+    test_data = np.transpose(test_data, (0, 3, 2, 1))
     print(test_data.shape)
+    #test_data = test_data.reshape(test_data.shape[0], -1)
+    #print(test_data.shape)
 
     # read label
     train_label = read_file(0, 'trainLabel', rootDir)
@@ -77,7 +78,7 @@ def load_data(rootDir, sampRateT, sampRateF):
     test_label = read_file(0, 'testLabel', rootDir)
     test_label = test_label.flatten()
 
-    return train_data_raw, train_label, test_data_raw, test_label
+    return train_data, train_label, test_data, test_label
 
 def write_log(paramset, result):
     epoch_time = int(time.time())
