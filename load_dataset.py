@@ -50,9 +50,11 @@ def load_data(rootDir, sampRateT, sampRateF):
         dataBlock = dataBlock[:,:,0::sampRateT,0::sampRateF]
         train_data_raw = np.vstack([train_data_raw, dataBlock]) if train_data_raw.size else dataBlock
 
-    train_data_raw = train_data_raw.reshape(train_data_raw.shape[0], train_data_raw.shape[2], train_data_raw.shape[3],
-                                          train_data_raw.shape[1])
+    train_data_raw = np.transpose(train_data_raw, (0, 3, 2, 1))
     print(train_data_raw.shape)
+    # for i in range(10):
+    #   plt.imshow(train_data_raw[10*i,:,:,0])
+    #   plt.show()
     train_data = train_data_raw.reshape(train_data_raw.shape[0], -1)
     print(train_data.shape)
 
@@ -62,7 +64,7 @@ def load_data(rootDir, sampRateT, sampRateF):
         dataBlock = dataBlock[:, :, 0::sampRateT, 0::sampRateF]
         test_data_raw = np.vstack([test_data_raw, dataBlock]) if test_data_raw.size else dataBlock
 
-    test_data_raw = test_data_raw.reshape(test_data_raw.shape[0], test_data_raw.shape[2], test_data_raw.shape[3], test_data_raw.shape[1])
+    test_data_raw = np.transpose(test_data_raw, (0, 3, 2, 1))
     print(test_data_raw.shape)
     test_data = test_data_raw.reshape(test_data_raw.shape[0], -1)
     print(test_data.shape)
