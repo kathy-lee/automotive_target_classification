@@ -1,6 +1,6 @@
 from tensorflow.keras import models
 from tensorflow.keras.layers import Conv2D,MaxPooling2D,Flatten,Dense,Dropout
-from tensorflow.keras.utils import to_categorical
+from tensorflow.keras.utils import to_categorical, normalize
 import numpy as np
 from load_dataset import load_data
 from sklearn.preprocessing import StandardScaler
@@ -8,7 +8,11 @@ from sklearn.model_selection import train_test_split
 from time import process_time
 
 data_dir = '/home/kangle/dataset/PedBicCarData'
-train_data, train_label, test_data, test_label = load_data(data_dir, 1, 1)
+train_data, train_label, test_data, test_label = load_data(data_dir, 2, 2)
+
+train_data = normalize(train_data, axis=1)
+test_data = normalize(test_data, axis=1)
+
 train_label = to_categorical(train_label-1, num_classes=5)
 test_label = to_categorical(test_label-1, num_classes=5)
 
@@ -18,10 +22,6 @@ print("Data sample distribution in training set: %d %d %d %d %d\n" % (np.count_n
 print("Data sample distribution in test set: %d %d %d %d %d\n" % (np.count_nonzero(test_label==1),
       np.count_nonzero(test_label==2), np.count_nonzero(test_label==3),
       np.count_nonzero(test_label==4), np.count_nonzero(test_label==5)))
-
-# scaler = StandardScaler()
-# train_data = scaler.fit_transform(train_data)
-# test_data = scaler.transform(test_data)
 
 train_data, val_data, train_label, val_label = train_test_split(train_data, train_label, test_size=0.1, random_state=42)
 print("Split training data into training and validation data:\n")
@@ -54,4 +54,4 @@ t_start = process_time()
 _,acc = model.evaluate(test_data, test_label, batch_size=128, verbose=2)
 t_end = process_time()
 t_cost = t_end - t_start
-print(f"Test Accuracy: {acc:.4f}, Inference time: {t:.2f}s")
+print(f"Test Accuracy: {acc:.4f}, Inference time: {t_cost:.2f}s")

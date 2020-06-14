@@ -1,7 +1,7 @@
 import tensorflow as tf
 from tensorflow.keras import models
 from tensorflow.keras.layers import Conv2D,MaxPooling2D,Flatten,Dense,BatchNormalization, ReLU, AveragePooling2D, Softmax
-from tensorflow.keras.utils import to_categorical
+from tensorflow.keras.utils import to_categorical, normalize
 from tensorflow.keras.optimizers import schedules, Adam
 import numpy as np
 from load_dataset import load_data
@@ -10,7 +10,11 @@ from sklearn.model_selection import train_test_split
 from time import process_time
 
 data_dir = '/home/kangle/dataset/PedBicCarData'
-train_data, train_label, test_data, test_label = load_data(data_dir, 1, 2)
+train_data, train_label, test_data, test_label = load_data(data_dir, 1, 1)
+
+train_data = normalize(train_data, axis=1)
+test_data = normalize(test_data, axis=1)
+
 train_label = to_categorical(train_label-1, num_classes=5)
 test_label = to_categorical(test_label-1, num_classes=5)
 
@@ -45,18 +49,18 @@ model.add(MaxPooling2D(pool_size=(10,10), strides=2))
 model.add(Conv2D(32, [5, 5], padding='same'))
 model.add(BatchNormalization())
 model.add(ReLU())
-model.add(MaxPooling2D(pool_size=(10,10), strides=2))
+model.add(MaxPooling2D(pool_size=(5,5), strides=2))
 
 model.add(Conv2D(32, [5, 5], padding='same'))
 model.add(BatchNormalization())
 model.add(ReLU())
 model.add(AveragePooling2D(pool_size=(2,2), strides=2))
 
-model.add(Dense(5, activation='softmax', name='dense_3'))
+model.add(Dense(5, activation='softmax'))
 model.add(Softmax())
 
 step = tf.Variable(0, trainable=False)
-boundaries = [1280, 2560]
+boundaries = [1562, 3125]
 values = [0.01, 0.001, 0.0001]
 learning_rate_fn = schedules.PiecewiseConstantDecay(boundaries, values)
 learning_rate_customized = learning_rate_fn(step)
