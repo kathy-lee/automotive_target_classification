@@ -55,9 +55,9 @@ def load_data(rootDir, sampRateT, sampRateF):
     #train_data = train_data.reshape(train_data.shape[0], -1)
     #print(train_data.shape)
 
-    # for i in range(10):
-    #   plt.imshow(train_data[10*i,:,:,0])
-    #   plt.show()
+    for i in range(10):
+      plt.imshow(train_data[10*i+1000,:,:,0])
+      plt.show()
 
     test_data = np.array([])
     for i in range(1,6):
@@ -77,6 +77,7 @@ def load_data(rootDir, sampRateT, sampRateF):
 
     test_label = read_file(0, 'testLabel', rootDir)
     test_label = test_label.flatten()
+    print(test_label.shape)
 
     return train_data, train_label, test_data, test_label
 

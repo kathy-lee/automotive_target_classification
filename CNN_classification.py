@@ -8,13 +8,7 @@ from sklearn.model_selection import train_test_split
 from time import process_time
 
 data_dir = '/home/kangle/dataset/PedBicCarData'
-train_data, train_label, test_data, test_label = load_data(data_dir, 2, 2)
-
-train_data = normalize(train_data, axis=1)
-test_data = normalize(test_data, axis=1)
-
-train_label = to_categorical(train_label-1, num_classes=5)
-test_label = to_categorical(test_label-1, num_classes=5)
+train_data, train_label, test_data, test_label = load_data(data_dir, 1, 1)
 
 print("Data sample distribution in training set: %d %d %d %d %d\n" % (np.count_nonzero(train_label==1),
       np.count_nonzero(train_label==2), np.count_nonzero(train_label==3),
@@ -22,6 +16,18 @@ print("Data sample distribution in training set: %d %d %d %d %d\n" % (np.count_n
 print("Data sample distribution in test set: %d %d %d %d %d\n" % (np.count_nonzero(test_label==1),
       np.count_nonzero(test_label==2), np.count_nonzero(test_label==3),
       np.count_nonzero(test_label==4), np.count_nonzero(test_label==5)))
+
+#train_data = normalize(train_data, axis=1)
+#test_data = normalize(test_data, axis=1)
+
+print(train_label[0:10])
+print(test_label[0:10])
+train_label = to_categorical(train_label-1, num_classes=5)
+test_label = to_categorical(test_label-1, num_classes=5)
+print(train_label.shape)
+print(test_label.shape)
+print(train_label[0:10,:])
+print(test_label[0:10,:])
 
 train_data, val_data, train_label, val_label = train_test_split(train_data, train_label, test_size=0.1, random_state=42)
 print("Split training data into training and validation data:\n")
@@ -35,7 +41,9 @@ model.add(Conv2D(16, [5, 5], activation='relu', name='conv_2'))
 model.add(MaxPooling2D())
 model.add(Flatten())
 model.add(Dense(120, activation='relu', name='dense_1'))
+model.add(Dropout(0.5))
 model.add(Dense(84, activation='relu', name='dense_2'))
+model.add(Dropout(0.5))
 model.add(Dense(5, activation='softmax', name='dense_3'))
 
 model.compile(optimizer='adam',
