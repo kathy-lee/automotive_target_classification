@@ -1,4 +1,5 @@
 from os.path import join as pjoin
+from tensorflow.keras.utils import to_categorical
 import h5py
 import matplotlib.pyplot as plt
 import numpy as np
@@ -55,10 +56,6 @@ def load_data(rootDir, sampRateT, sampRateF):
     #train_data = train_data.reshape(train_data.shape[0], -1)
     #print(train_data.shape)
 
-    for i in range(10):
-      plt.imshow(train_data[10*i+1000,:,:,0])
-      plt.show()
-
     test_data = np.array([])
     for i in range(1,6):
         dataBlock = read_file(i, 'testData', rootDir)
@@ -79,6 +76,14 @@ def load_data(rootDir, sampRateT, sampRateF):
     test_label = test_label.flatten()
     print(test_label.shape)
 
+    category_list = ['1 pedestrian', '1 bicyclist', '1 pedestrian and 1 bicyclist', '2 pedestrians', '2 bicyclists']
+    # for i in range(2):
+    #   plt.imshow(train_data[10*i+1000,:,:,0])
+    #   plt.title(category_list[train_label[10*i+1000]-1])
+    #   plt.show()
+
+    # train_label = to_categorical(train_label - 1, num_classes=5)
+    # test_label = to_categorical(test_label - 1, num_classes=5)
     return train_data, train_label, test_data, test_label
 
 def write_log(paramset, result):

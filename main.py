@@ -1,21 +1,15 @@
 import argparse
 from load_dataset import load_data, write_log, algo_map
 import json
-import numpy as np
+import os
+import sys
 import importlib
 from sklearn.metrics import confusion_matrix, precision_score, recall_score
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--config', help='pipeline configuration.', type=str)
-    #parser.add_argument('--samplerate', default='2', help='resample image data to reduce data size', type=int)
-    #parser.add_argument('--preprocess', default='pca', help='data dimensionality reduction', type=str)
-    #parser.add_argument('--classifier', default='lr', help='classifier', type=str)
-    args = parser.parse_args()
+def train(args):
     params = vars(args)
-
     with open(params["config"], mode='r') as f:
         paramset = json.load(f)
     data_dir = paramset["root_dir"]
@@ -24,7 +18,7 @@ def main():
 
     train_data, train_label, test_data, test_label = load_data(data_dir, samp_rate_t, samp_rate_f)
 
-    #scaler = MinMaxScaler()
+    # scaler = MinMaxScaler()
     scaler = StandardScaler()
     train_data = scaler.fit_transform(train_data)
     test_data = scaler.fit_transform(test_data)
@@ -81,6 +75,51 @@ def main():
     logFile = write_log(paramset, pred_result)
     print(logFile)
 
+def show(args):
+    params = vars(args)
+    train_data, train_label, test_data, test_label = load_data(params["datadir"], 1, 1)
+    fig = plt.figure()
+    global cursor
+    cursor = 0
+    plt.imshow(train_data[params["start"], :, :, 0])
+    category_list = ['1 pedestrian', '1 bicyclist', '1 pedestrian and 1 bicyclist', '2 pedestrians', '2 bicyclists']
+    plt.title(category_list[train_label[params["start"]] - 1])
+    #plt.show()
+    fig.canvas.draw()
+
+    def press(event):
+        global cursor
+        if event.key == 'escape':
+            sys.exit(0)
+        if event.key == 'left' or event.key == 'up':
+            cursor = cursor - 1 if cursor > 0 else 0
+        elif event.key == 'right' or event.key == 'down' or event.key == ' ':
+            cursor = cursor + 1 if cursor < train_data.shape[0] - 1 else train_data.shape[0] - 1
+        sys.stdout.flush()
+        plt.imshow(train_data[cursor, :, :, 0])
+        category_list = ['1 pedestrian', '1 bicyclist', '1 pedestrian and 1 bicyclist', '2 pedestrians', '2 bicyclists']
+        plt.title(category_list[train_label[cursor] - 1])
+        #plt.show()
+        fig.canvas.draw()
+
+    fig.canvas.mpl_connect('key_press_event', press)
+    plt.get_current_fig_manager().full_screen_toggle()
+    plt.show()
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    subparsers = parser.add_subparsers(help='subcommand help')
+    train_parser = subparsers.add_parser('train', help='train help')
+    train_parser.add_argument('--config', help='pipeline configuration.', type=str)
+    show_parser = subparsers.add_parser('show', help='show help')
+    show_parser.add_argument('--datadir', help='data directory', type=str)
+    show_parser.add_argument('--start', help='start image index', type=int)
+
+    train_parser.set_defaults(func=train)
+    show_parser.set_defaults(func=show)
+    args = parser.parse_args()
+    args.func(args)
 
 if __name__ =="__main__":
     main()
