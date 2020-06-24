@@ -1,12 +1,14 @@
 import argparse
 from load_dataset import load_data, write_log, algo_map
 import json
-import os
+import numpy as np
 import sys
 import importlib
 from sklearn.metrics import confusion_matrix, precision_score, recall_score
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
+
+#global cursor
 
 def train(args):
     params = vars(args)
@@ -16,14 +18,17 @@ def train(args):
     samp_rate_t = paramset["sample_rate"]["sample_rate_t"]
     samp_rate_f = paramset["sample_rate"]["sample_rate_f"]
 
-    train_data, train_label, test_data, test_label = load_data(data_dir, samp_rate_t, samp_rate_f)
+    train_data_raw, train_label, test_data_raw, test_label = load_data(data_dir, samp_rate_t, samp_rate_f)
 
-    # scaler = MinMaxScaler()
+    train_data = np.reshape(train_data_raw, (train_data_raw.shape[0], -1))
+    print(train_data.shape)
+    test_data = np.reshape(test_data_raw, (test_data_raw.shape[0], -1))
+    print(test_data.shape)
     scaler = StandardScaler()
     train_data = scaler.fit_transform(train_data)
     test_data = scaler.fit_transform(test_data)
 
-    if "dimension_redduction" in paramset:
+    if "dimension_reduction" in paramset:
         dim_reducer = paramset["dimension_reduction"]["method"]
         num_components = paramset["dimension_reduction"]["n_components"]
         algo_map[dim_reducer]["parameters"]["n_components"] = num_components
@@ -75,11 +80,47 @@ def train(args):
     logFile = write_log(paramset, pred_result)
     print(logFile)
 
+    if params["show_misclassified"]:
+        indices = [i for i in range(len(test_label)) if test_pred[i] != test_label[i]]
+        fig = plt.figure()
+        global cursor
+        cursor = 0
+        plt.imshow(test_data_raw[indices[cursor], :, :, 0])
+        category_list = ['1 pedestrian', '1 bicyclist', '1 pedestrian and 1 bicyclist', '2 pedestrians', '2 bicyclists']
+        title = 'sample index:' + str(indices[cursor]) \
+                    + ', true category: ' + str(category_list[test_label[indices[cursor]] - 1]) \
+                    + ', misclassified as:' + str(category_list[test_pred[indices[cursor]] - 1])
+        plt.title(title)
+        fig.canvas.draw()
+
+        def press(event):
+            global cursor
+            if event.key == 'escape':
+                sys.exit(0)
+            if event.key == 'left' or event.key == 'up':
+                cursor = cursor - 1 if cursor > 0 else 0
+            elif event.key == 'right' or event.key == 'down' or event.key == ' ':
+                cursor = cursor + 1 if cursor < len(indices) - 1 else len(indices) - 1
+            sys.stdout.flush()
+            plt.imshow(test_data_raw[indices[cursor], :, :, 0])
+            category_list = ['1 pedestrian', '1 bicyclist', '1 pedestrian and 1 bicyclist', '2 pedestrians',
+                             '2 bicyclists']
+            title = 'true category: ' + str(category_list[test_label[indices[cursor]] - 1]) \
+                    + ', misclassified as:' + str(category_list[test_pred[indices[cursor]] - 1])
+            plt.title(title)
+            # plt.show()
+            fig.canvas.draw()
+
+        fig.canvas.mpl_connect('key_press_event', press)
+        plt.get_current_fig_manager().full_screen_toggle()
+        plt.show()
+
+
 def show(args):
     params = vars(args)
     train_data, train_label, test_data, test_label = load_data(params["datadir"], 1, 1)
     fig = plt.figure()
-    global cursor
+    #global cursor
     cursor = 0
     plt.imshow(train_data[params["start"], :, :, 0])
     category_list = ['1 pedestrian', '1 bicyclist', '1 pedestrian and 1 bicyclist', '2 pedestrians', '2 bicyclists']
@@ -111,7 +152,8 @@ def main():
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(help='subcommand help')
     train_parser = subparsers.add_parser('train', help='train help')
-    train_parser.add_argument('--config', help='pipeline configuration.', type=str)
+    train_parser.add_argument('--config', help='pipeline configuration', type=str)
+    train_parser.add_argument('--show-misclassified', help='misclassified samples from test', action='store_true')
     show_parser = subparsers.add_parser('show', help='show help')
     show_parser.add_argument('--datadir', help='data directory', type=str)
     show_parser.add_argument('--start', help='start image index', type=int)
