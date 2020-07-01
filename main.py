@@ -120,12 +120,12 @@ def show(args):
     params = vars(args)
     train_data, train_label, test_data, test_label = load_data(params["datadir"], 1, 1)
     fig = plt.figure()
-    #global cursor
-    cursor = 0
+    global cursor
+    #cursor = 0
+    cursor = params["start"]
     plt.imshow(train_data[params["start"], :, :, 0])
     category_list = ['1 pedestrian', '1 bicyclist', '1 pedestrian and 1 bicyclist', '2 pedestrians', '2 bicyclists']
-    plt.title(category_list[train_label[params["start"]] - 1])
-    #plt.show()
+    plt.title('%d th sample: %s' % (params["start"], category_list[train_label[params["start"]] - 1]))
     fig.canvas.draw()
 
     def press(event):
@@ -140,7 +140,7 @@ def show(args):
         plt.imshow(train_data[cursor, :, :, 0])
         category_list = ['1 pedestrian', '1 bicyclist', '1 pedestrian and 1 bicyclist', '2 pedestrians', '2 bicyclists']
         plt.title(category_list[train_label[cursor] - 1])
-        #plt.show()
+        plt.title('No%d Sample: %s' % (cursor, category_list[train_label[cursor] - 1]))
         fig.canvas.draw()
 
     fig.canvas.mpl_connect('key_press_event', press)
@@ -154,6 +154,7 @@ def main():
     train_parser = subparsers.add_parser('train', help='train help')
     train_parser.add_argument('--config', help='pipeline configuration', type=str)
     train_parser.add_argument('--show-misclassified', help='misclassified samples from test', action='store_true')
+
     show_parser = subparsers.add_parser('show', help='show help')
     show_parser.add_argument('--datadir', help='data directory', type=str)
     show_parser.add_argument('--start', help='start image index', type=int)
