@@ -1,5 +1,5 @@
 import argparse
-from load_dataset import load_data, write_log, algo_map
+from load_dataset import load_data, write_log, algo_map, preprocess_data
 import json
 import numpy as np
 import sys
@@ -18,15 +18,15 @@ def train(args):
     samp_rate_t = paramset["sample_rate"]["sample_rate_t"]
     samp_rate_f = paramset["sample_rate"]["sample_rate_f"]
 
-    train_data_raw, train_label, test_data_raw, test_label = load_data(data_dir, samp_rate_t, samp_rate_f)
+    train_data, train_label, test_data, test_label = load_data(data_dir, samp_rate_t, samp_rate_f)
 
-    train_data = np.reshape(train_data_raw, (train_data_raw.shape[0], -1))
-    print(train_data.shape)
-    test_data = np.reshape(test_data_raw, (test_data_raw.shape[0], -1))
-    print(test_data.shape)
-    scaler = StandardScaler()
-    train_data = scaler.fit_transform(train_data)
-    test_data = scaler.fit_transform(test_data)
+    # train_data = np.reshape(train_data_raw, (train_data_raw.shape[0], -1))
+    # print(train_data.shape)
+    # test_data = np.reshape(test_data_raw, (test_data_raw.shape[0], -1))
+    # print(test_data.shape)
+    # scaler = StandardScaler()
+    # train_data = scaler.fit_transform(train_data)
+    # test_data = scaler.fit_transform(test_data)
 
     if "dimension_reduction" in paramset:
         dim_reducer = paramset["dimension_reduction"]["method"]
@@ -35,16 +35,20 @@ def train(args):
         print('\nbegin dimensionality reduction process.')
         module = importlib.import_module(algo_map[dim_reducer]["module"])
         reducer = getattr(module, algo_map[dim_reducer]["function"])(**algo_map[dim_reducer]["parameters"])
+        train_data, train_label, test_data, test_label = preprocess_data(train_data, train_label, test_data, test_label, dim_reducer)
         reducer.fit(train_data)
         train_data = reducer.transform(train_data)
-        print(train_data.shape)
         test_data = reducer.transform(test_data)
+        print('\nafter dimensionality reduction:')
+        print(train_data.shape)
         print(test_data.shape)
 
     print('\nbegin training process.')
     classify_method = paramset["classifier"]["method"]
     module = importlib.import_module(algo_map[classify_method]["module"])
     classifier = getattr(module, algo_map[classify_method]["function"])(**algo_map[classify_method]["parameters"])
+    if "dimension_reduction" not in paramset:
+        train_data, train_label, test_data, test_label = preprocess_data(train_data, train_label, test_data, test_label, classify_method)
     classifier.fit(train_data, train_label)
 
     print('\npredict for test data.')

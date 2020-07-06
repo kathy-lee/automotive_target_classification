@@ -52,21 +52,11 @@ def load_data(rootDir, sampRateT, sampRateF):
         dataBlock = dataBlock[:,:,0::sampRateT,0::sampRateF]
         train_data = np.vstack([train_data, dataBlock]) if train_data.size else dataBlock
 
-    train_data = np.transpose(train_data, (0, 3, 2, 1))
-    print(train_data.shape)
-    #train_data = train_data.reshape(train_data.shape[0], -1)
-    #print(train_data.shape)
-
     test_data = np.array([])
     for i in range(1,6):
         dataBlock = read_file(i, 'testData', rootDir)
         dataBlock = dataBlock[:, :, 0::sampRateT, 0::sampRateF]
         test_data = np.vstack([test_data, dataBlock]) if test_data.size else dataBlock
-
-    test_data = np.transpose(test_data, (0, 3, 2, 1))
-    print(test_data.shape)
-    #test_data = test_data.reshape(test_data.shape[0], -1)
-    #print(test_data.shape)
 
     # read label
     train_label = read_file(0, 'trainLabel', rootDir)
@@ -77,14 +67,29 @@ def load_data(rootDir, sampRateT, sampRateF):
     test_label = test_label.flatten()
     print(test_label.shape)
 
-    category_list = ['1 pedestrian', '1 bicyclist', '1 pedestrian and 1 bicyclist', '2 pedestrians', '2 bicyclists']
-    # for i in range(2):
-    #   plt.imshow(train_data[10*i+1000,:,:,0])
-    #   plt.title(category_list[train_label[10*i+1000]-1])
-    #   plt.show()
+    return train_data, train_label, test_data, test_label
 
-    # train_label = to_categorical(train_label - 1, num_classes=5)
-    # test_label = to_categorical(test_label - 1, num_classes=5)
+def preprocess_data(train_data, train_label, test_data, test_label, classify_method):
+    if classify_method.lower() in ['pca', 'lda', 'ica', 'lr', 'svm', 'decision tree', 'knn',
+                                    'random forest', 'ada boost', 'gradient boost', 'xgboost']:
+        print('preprocess data format for ML classifier:\n')
+        train_data = train_data.reshape(train_data.shape[0], -1)
+        print(train_data.shape)
+        test_data = test_data.reshape(test_data.shape[0], -1)
+        print(test_data.shape)
+    elif classify_method.lower() in []:
+        print('preprocess data format for CNN classifier:\n')
+        train_label = to_categorical(train_label - 1, num_classes=5)
+        test_label = to_categorical(test_label - 1, num_classes=5)
+    else:
+        print('preprocess data format for RNN classifier:\n')
+        train_data = np.transpose(train_data, (0, 3, 2, 1))
+        print(train_data.shape)
+        test_data = np.transpose(test_data, (0, 3, 2, 1))
+        print(test_data.shape)
+        train_label = to_categorical(train_label - 1, num_classes=5)
+        test_label = to_categorical(test_label - 1, num_classes=5)
+
     return train_data, train_label, test_data, test_label
 
 def write_log(paramset, result):
