@@ -7,8 +7,6 @@ from sklearn.metrics import confusion_matrix, precision_score, recall_score
 import matplotlib.pyplot as plt
 import numpy as np
 
-#global cursor
-
 def train(args):
     params = vars(args)
     with open(params["config"], mode='r') as f:
@@ -55,23 +53,19 @@ def train(args):
         test_label = np.argmax(test_label, axis=1)
         train_label = np.argmax(train_label, axis=1)
 
-    print(train_label[0:20])
-    print(train_pred[0:20])
     print('\nevaluate the prediction(train data).')
     train_conf = confusion_matrix(train_label, train_pred)
-    print(train_conf)
     train_precision = precision_score(train_label, train_pred, average=None)
     train_recall = recall_score(train_label, train_pred, average=None)
+    print(train_conf)
     print(train_precision)
     print(train_recall)
 
-    print(test_label[0:20])
-    print(test_pred[0:20])
     print('\nevaluate the prediction(test data).')
     test_conf = confusion_matrix(test_label, test_pred)
-    print(test_conf)
     test_precision = precision_score(test_label, test_pred, average=None)
     test_recall = recall_score(test_label, test_pred, average=None)
+    print(test_conf)
     print(test_precision)
     print(test_recall)
 
@@ -90,51 +84,21 @@ def train(args):
 
     if params["show_misclassified"]:
         indices = [i for i in range(len(test_label)) if test_pred[i] != test_label[i]]
-        fig = plt.figure()
-        global cursor
-        cursor = 0
-        plt.imshow(test_data_raw[indices[cursor], :, :, 0])
-        category_list = ['1 pedestrian', '1 bicyclist', '1 pedestrian and 1 bicyclist', '2 pedestrians', '2 bicyclists']
-        title = 'sample index:' + str(indices[cursor]) \
-                    + ', category: ' + str(category_list[test_label_raw[indices[cursor]]]) \
-                    + ', misclassified as: ' + str(category_list[test_pred[indices[cursor]]])
-        plt.title(title)
-        fig.canvas.draw()
-
-        def press(event):
-            global cursor
-            if event.key == 'escape':
-                sys.exit(0)
-            if event.key == 'left' or event.key == 'up':
-                cursor = cursor - 1 if cursor > 0 else 0
-            elif event.key == 'right' or event.key == 'down' or event.key == ' ':
-                cursor = cursor + 1 if cursor < len(indices) - 1 else len(indices) - 1
-            sys.stdout.flush()
-            plt.imshow(test_data_raw[indices[cursor], :, :, 0])
-            category_list = ['1 pedestrian', '1 bicyclist', '1 pedestrian and 1 bicyclist', '2 pedestrians',
-                             '2 bicyclists']
-            title = 'sample index:' + str(indices[cursor]) \
-                    + ', category: ' + str(category_list[test_label_raw[indices[cursor]]]) \
-                    + ', misclassified as: ' + str(category_list[test_pred[indices[cursor]]])
-            plt.title(title)
-            # plt.show()
-            fig.canvas.draw()
-
-        fig.canvas.mpl_connect('key_press_event', press)
-        plt.get_current_fig_manager().full_screen_toggle()
-        plt.show()
+        show_data(test_data_raw[indices], test_label[indices], indices, test_pred[indices])
 
 
-def show(args):
-    params = vars(args)
-    train_data, train_label, test_data, test_label = load_data(params["datadir"], 1, 1)
+def show_data(data, label, indices, pred=[]):
     fig = plt.figure()
     global cursor
-    #cursor = 0
-    cursor = params["start"]
-    plt.imshow(train_data[params["start"], :, :, 0])
+    cursor = 0
+    plt.imshow(data[cursor, :, :, 0])
+    global category_list
     category_list = ['1 pedestrian', '1 bicyclist', '1 pedestrian and 1 bicyclist', '2 pedestrians', '2 bicyclists']
-    plt.title('%d th sample: %s' % (params["start"], category_list[train_label[params["start"]]]))
+    title = 'sample index:' + str(indices[cursor]) \
+            + ', category: ' + str(category_list[label[cursor]])
+    if len(pred) > 0:
+        title += ', misclassified as: ' + str(category_list[pred[cursor]])
+    plt.title(title)
     fig.canvas.draw()
 
     def press(event):
@@ -144,17 +108,27 @@ def show(args):
         if event.key == 'left' or event.key == 'up':
             cursor = cursor - 1 if cursor > 0 else 0
         elif event.key == 'right' or event.key == 'down' or event.key == ' ':
-            cursor = cursor + 1 if cursor < train_data.shape[0] - 1 else train_data.shape[0] - 1
+            cursor = cursor + 1 if cursor < data.shape[0] - 1 else data.shape[0] - 1
         sys.stdout.flush()
-        plt.imshow(train_data[cursor, :, :, 0])
-        category_list = ['1 pedestrian', '1 bicyclist', '1 pedestrian and 1 bicyclist', '2 pedestrians', '2 bicyclists']
-        plt.title(category_list[train_label[cursor] - 1])
-        plt.title('No%d Sample: %s' % (cursor, category_list[train_label[cursor]]))
+        plt.imshow(data[cursor, :, :, 0])
+        global category_list
+        title = 'sample index:' + str(indices[cursor]) \
+                + ', category: ' + str(category_list[label[cursor]])
+        if len(pred) > 0:
+            title += ', misclassified as: ' + str(category_list[pred[cursor]])
+        plt.title(title)
         fig.canvas.draw()
 
     fig.canvas.mpl_connect('key_press_event', press)
     plt.get_current_fig_manager().full_screen_toggle()
     plt.show()
+
+
+def show(args):
+    params = vars(args)
+    train_data, train_label, test_data, test_label = load_data(params["datadir"], 1, 1)
+    indices = np.arange(params["start"], train_data.shape[0]-1)
+    show_data(train_data[params["start"]:], train_label[params["start"]:], indices)
 
 
 def main():
