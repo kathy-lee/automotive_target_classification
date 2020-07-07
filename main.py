@@ -5,6 +5,7 @@ import sys
 import importlib
 from sklearn.metrics import confusion_matrix, precision_score, recall_score
 import matplotlib.pyplot as plt
+import numpy as np
 
 #global cursor
 
@@ -48,6 +49,14 @@ def train(args):
     test_pred = classifier.predict(test_data)
     train_pred = classifier.predict(train_data)
 
+    if len(test_pred.shape) > 1:
+        test_pred = np.argmax(test_pred, axis=1)
+        train_pred = np.argmax(train_pred, axis=1)
+        test_label = np.argmax(test_label, axis=1)
+        train_label = np.argmax(train_label, axis=1)
+
+    print(train_label[0:20])
+    print(train_pred[0:20])
     print('\nevaluate the prediction(train data).')
     train_conf = confusion_matrix(train_label, train_pred)
     print(train_conf)
@@ -56,6 +65,8 @@ def train(args):
     print(train_precision)
     print(train_recall)
 
+    print(test_label[0:20])
+    print(test_pred[0:20])
     print('\nevaluate the prediction(test data).')
     test_conf = confusion_matrix(test_label, test_pred)
     print(test_conf)
@@ -85,8 +96,8 @@ def train(args):
         plt.imshow(test_data_raw[indices[cursor], :, :, 0])
         category_list = ['1 pedestrian', '1 bicyclist', '1 pedestrian and 1 bicyclist', '2 pedestrians', '2 bicyclists']
         title = 'sample index:' + str(indices[cursor]) \
-                    + ', category: ' + str(category_list[test_label_raw[indices[cursor]] - 1]) \
-                    + ', misclassified as:' + str(category_list[test_pred[indices[cursor]] - 1])
+                    + ', category: ' + str(category_list[test_label_raw[indices[cursor]]]) \
+                    + ', misclassified as: ' + str(category_list[test_pred[indices[cursor]]])
         plt.title(title)
         fig.canvas.draw()
 
@@ -102,8 +113,9 @@ def train(args):
             plt.imshow(test_data_raw[indices[cursor], :, :, 0])
             category_list = ['1 pedestrian', '1 bicyclist', '1 pedestrian and 1 bicyclist', '2 pedestrians',
                              '2 bicyclists']
-            title = 'true category: ' + str(category_list[test_label_raw[indices[cursor]] - 1]) \
-                    + ', misclassified as:' + str(category_list[test_pred[indices[cursor]] - 1])
+            title = 'sample index:' + str(indices[cursor]) \
+                    + ', category: ' + str(category_list[test_label_raw[indices[cursor]]]) \
+                    + ', misclassified as: ' + str(category_list[test_pred[indices[cursor]]])
             plt.title(title)
             # plt.show()
             fig.canvas.draw()
@@ -122,7 +134,7 @@ def show(args):
     cursor = params["start"]
     plt.imshow(train_data[params["start"], :, :, 0])
     category_list = ['1 pedestrian', '1 bicyclist', '1 pedestrian and 1 bicyclist', '2 pedestrians', '2 bicyclists']
-    plt.title('%d th sample: %s' % (params["start"], category_list[train_label[params["start"]] - 1]))
+    plt.title('%d th sample: %s' % (params["start"], category_list[train_label[params["start"]]]))
     fig.canvas.draw()
 
     def press(event):
@@ -137,7 +149,7 @@ def show(args):
         plt.imshow(train_data[cursor, :, :, 0])
         category_list = ['1 pedestrian', '1 bicyclist', '1 pedestrian and 1 bicyclist', '2 pedestrians', '2 bicyclists']
         plt.title(category_list[train_label[cursor] - 1])
-        plt.title('No%d Sample: %s' % (cursor, category_list[train_label[cursor] - 1]))
+        plt.title('No%d Sample: %s' % (cursor, category_list[train_label[cursor]]))
         fig.canvas.draw()
 
     fig.canvas.mpl_connect('key_press_event', press)

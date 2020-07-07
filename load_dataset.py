@@ -67,9 +67,10 @@ def load_data(rootDir, sampRateT, sampRateF):
     # read label
     train_label = read_file(0, 'trainLabel', rootDir)
     train_label = train_label.flatten()
-
+    train_label -= 1
     test_label = read_file(0, 'testLabel', rootDir)
     test_label = test_label.flatten()
+    test_label -= 1
 
     print(train_data.shape)
     print(test_data.shape)
@@ -91,12 +92,12 @@ def preprocess_data(train_data, train_label, test_data, test_label, classify_met
         test_data = test_data.reshape(test_data.shape[0], -1)
     elif classify_method.lower() in ['cnn_a']:
         print('preprocess data format for CNN classifier:\n')
-        train_label = to_categorical(train_label - 1, num_classes=5)
-        test_label = to_categorical(test_label - 1, num_classes=5)
+        train_label = to_categorical(train_label, num_classes=5)
+        test_label = to_categorical(test_label, num_classes=5)
     elif classify_method.lower() in ['rnn_a']:
         print('preprocess data format for RNN classifier:\n')
-        train_label = to_categorical(train_label - 1, num_classes=5)
-        test_label = to_categorical(test_label - 1, num_classes=5)
+        train_label = to_categorical(train_label, num_classes=5)
+        test_label = to_categorical(test_label, num_classes=5)
         train_data = np.squeeze(train_data)
         test_data = np.squeeze(test_data)
         train_data = np.transpose(train_data, (0, 2, 1))
