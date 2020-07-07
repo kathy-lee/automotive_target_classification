@@ -58,14 +58,24 @@ def load_data(rootDir, sampRateT, sampRateF):
         dataBlock = dataBlock[:, :, 0::sampRateT, 0::sampRateF]
         test_data = np.vstack([test_data, dataBlock]) if test_data.size else dataBlock
 
+    train_data = np.transpose(train_data, (0, 3, 2, 1))
+    test_data = np.transpose(test_data, (0, 3, 2, 1))
+
     # read label
     train_label = read_file(0, 'trainLabel', rootDir)
     train_label = train_label.flatten()
-    print(train_label.shape)
 
     test_label = read_file(0, 'testLabel', rootDir)
     test_label = test_label.flatten()
-    print(test_label.shape)
+
+    print(train_data.shape)
+    print(test_data.shape)
+
+    print("Data sample distribution in training set: %d %d %d %d %d\n" % (np.count_nonzero(train_label == 1),
+                                                                          np.count_nonzero(train_label == 2),
+                                                                          np.count_nonzero(train_label == 3),
+                                                                          np.count_nonzero(train_label == 4),
+                                                                          np.count_nonzero(train_label == 5)))
 
     return train_data, train_label, test_data, test_label
 
@@ -74,21 +84,27 @@ def preprocess_data(train_data, train_label, test_data, test_label, classify_met
                                     'random forest', 'ada boost', 'gradient boost', 'xgboost']:
         print('preprocess data format for ML classifier:\n')
         train_data = train_data.reshape(train_data.shape[0], -1)
-        print(train_data.shape)
         test_data = test_data.reshape(test_data.shape[0], -1)
-        print(test_data.shape)
-    elif classify_method.lower() in []:
+
+    elif classify_method.lower() in ['cnn']:
         print('preprocess data format for CNN classifier:\n')
         train_label = to_categorical(train_label - 1, num_classes=5)
         test_label = to_categorical(test_label - 1, num_classes=5)
-    else:
+    elif classify_method.lower() in ['rnn']:
         print('preprocess data format for RNN classifier:\n')
-        train_data = np.transpose(train_data, (0, 3, 2, 1))
-        print(train_data.shape)
-        test_data = np.transpose(test_data, (0, 3, 2, 1))
-        print(test_data.shape)
         train_label = to_categorical(train_label - 1, num_classes=5)
         test_label = to_categorical(test_label - 1, num_classes=5)
+        train_data = np.squeeze(train_data)
+        test_data = np.squeeze(test_data)
+        train_data = np.transpose(train_data, (0, 2, 1))
+        test_data = np.transpose(test_data, (0, 2, 1))
+
+    # scaler = StandardScaler()
+    # train_data = scaler.fit_transform(train_data)
+    # test_data = scaler.fit_transform(test_data)
+
+    print(train_data.shape)
+    print(test_data.shape)
 
     return train_data, train_label, test_data, test_label
 
