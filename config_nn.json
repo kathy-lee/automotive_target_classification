@@ -1,0 +1,10 @@
+{
+  "root_dir": "/home/kangle/dataset/PedBicCarData",
+  "sample_rate": {
+    "sample_rate_t": 2,
+    "sample_rate_f": 2
+  },
+  "classifier": {
+    "method": "rnn_a"
+  }
+}

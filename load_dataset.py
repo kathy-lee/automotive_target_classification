@@ -27,8 +27,11 @@ algo_map = {
     'xgboost': {"module": "xgboost", "function": "XGBClassifier",
                 "parameters": {"learning_rate": 0.1,"n_estimators": 100, "max_depth": 5, "min_child_weight": 1,
                                "gamma": 0, "subsample": 0.8, "colsample_bytree": 0.8, "objective": 'binary:logistic',
-                               "nthread": 4, "scale_pos_weight": 1, "seed": 27}}
-    
+                               "nthread": 4, "scale_pos_weight": 1, "seed": 27}},
+    'cnn_a': {"module": "nnet_lib", "function": "cnn_a",
+            "parameters": {}},
+    'rnn_a': {"module": "nnet_lib", "function": "rnn_a",
+            "parameters": {}}
 }
 
 def read_file(index, type, rootDir):
@@ -80,17 +83,17 @@ def load_data(rootDir, sampRateT, sampRateF):
     return train_data, train_label, test_data, test_label
 
 def preprocess_data(train_data, train_label, test_data, test_label, classify_method):
+
     if classify_method.lower() in ['pca', 'lda', 'ica', 'lr', 'svm', 'decision tree', 'knn',
                                     'random forest', 'ada boost', 'gradient boost', 'xgboost']:
         print('preprocess data format for ML classifier:\n')
         train_data = train_data.reshape(train_data.shape[0], -1)
         test_data = test_data.reshape(test_data.shape[0], -1)
-
-    elif classify_method.lower() in ['cnn']:
+    elif classify_method.lower() in ['cnn_a']:
         print('preprocess data format for CNN classifier:\n')
         train_label = to_categorical(train_label - 1, num_classes=5)
         test_label = to_categorical(test_label - 1, num_classes=5)
-    elif classify_method.lower() in ['rnn']:
+    elif classify_method.lower() in ['rnn_a']:
         print('preprocess data format for RNN classifier:\n')
         train_label = to_categorical(train_label - 1, num_classes=5)
         test_label = to_categorical(test_label - 1, num_classes=5)
