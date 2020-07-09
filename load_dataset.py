@@ -33,7 +33,7 @@ algo_map = {
                            "metrics": "accuracy", "batch_size": 128, "epochs": 20}},
     'rnn_a': {"module": "nnet_lib", "function": "rnn_a",
               "parameters": {"optimizer": "Adam", "learning_rate": 0.01, "loss": "categorical_crossentropy",
-                           "metrics": "accuracy", "batch_size": 128, "epochs": 20}}
+                           "metrics": "accuracy", "batch_size": 128, "epochs": 5}}
 }
 
 def read_file(index, type, rootDir):
@@ -114,7 +114,7 @@ def preprocess_data(train_data, train_label, test_data, test_label, classify_met
 
     return train_data, train_label, test_data, test_label
 
-def write_log(paramset, result):
+def write_log(paramset, result, classifier=None, history=None):
     epoch_time = int(time.time())
     filename = "log" + str(epoch_time) + ".txt"
     with open(filename, "w+") as f:
@@ -152,4 +152,37 @@ def write_log(paramset, result):
         f.write("\naverage precision score: %s\n" % test_precision)
         test_recall = np.array_str(result["test_recall"])
         f.write("average recall score: %s\n" % test_recall)
+
+        if classifier:
+            #f.write(classifier.summary)
+            f.write("\ntraining accuracy:\n")
+            f.write(' '.join(map(str, history.history['accuracy'])))
+            f.write("\ntraining loss:\n")
+            f.write(' '.join(map(str, history.history['loss'])))
+            f.write("\nvalidation accuracy:\n")
+            f.write(' '.join(map(str, history.history['val_accuracy'])))
+            f.write("\nvalidation loss: \n" )
+            f.write( ' '.join(map(str, history.history['val_loss'])))
+            f.write("\n")
+            classifier.summary(print_fn=lambda x: f.write(x + '\n'))
     return filename
+
+def show_learncurve(history):
+    plt.figure()
+    plt.subplot(211)
+    plt.plot(history.history['accuracy'])
+    plt.plot(history.history['val_accuracy'])
+    plt.xlabel('epoch')
+    plt.ylabel('accuracy')
+    plt.legend(['train', 'test'], loc='lower right')
+    plt.grid(True)
+    plt.subplot(212)
+    plt.plot(history.history['loss'])
+    plt.plot(history.history['val_loss'])
+    plt.xlabel('epoch')
+    plt.ylabel('loss')
+    plt.legend(['train', 'test'], loc='upper right')
+    plt.grid(True)
+    plt.suptitle('model accuracy and loss')
+    plt.tight_layout()
+    plt.show()

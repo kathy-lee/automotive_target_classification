@@ -1,5 +1,5 @@
 import argparse
-from load_dataset import load_data, write_log, algo_map, preprocess_data
+from load_dataset import load_data, write_log, algo_map, preprocess_data, show_learncurve
 import json
 import sys
 import importlib
@@ -40,6 +40,7 @@ def train(args):
     if algo_map[classify_method]["module"] == "nnet_lib":
         #classifier = getattr(module, algo_map[classify_method]["function"])(train_data, train_label)
         classifier, history = getattr(module, "nnet_training")(train_data, train_label, classify_method, **algo_map[classify_method]["parameters"])
+        show_learncurve(history)
     else:
         classifier = getattr(module, algo_map[classify_method]["function"])(**algo_map[classify_method]["parameters"])
         classifier.fit(train_data, train_label)
@@ -80,7 +81,12 @@ def train(args):
     }
 
     print('\ngenerate report file \t')
-    logFile = write_log(paramset, pred_result)
+    #logFile = write_log(paramset, pred_result)
+    if algo_map[classify_method]["module"] == "nnet_lib":
+        logFile = write_log(paramset, pred_result, classifier, history)
+    else:
+        logFile = write_log(paramset, pred_result)
+
     print(logFile)
 
     if params["show_misclassified"]:
