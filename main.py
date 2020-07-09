@@ -38,7 +38,8 @@ def train(args):
         train_data, train_label, test_data, test_label = preprocess_data(train_data_raw, train_label_raw, test_data_raw, test_label_raw, classify_method)
     module = importlib.import_module(algo_map[classify_method]["module"])
     if algo_map[classify_method]["module"] == "nnet_lib":
-        classifier = getattr(module, algo_map[classify_method]["function"])(train_data, train_label)
+        #classifier = getattr(module, algo_map[classify_method]["function"])(train_data, train_label)
+        classifier, history = getattr(module, "nnet_training")(train_data, train_label, classify_method, **algo_map[classify_method]["parameters"])
     else:
         classifier = getattr(module, algo_map[classify_method]["function"])(**algo_map[classify_method]["parameters"])
         classifier.fit(train_data, train_label)

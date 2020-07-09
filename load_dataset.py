@@ -29,9 +29,11 @@ algo_map = {
                                "gamma": 0, "subsample": 0.8, "colsample_bytree": 0.8, "objective": 'binary:logistic',
                                "nthread": 4, "scale_pos_weight": 1, "seed": 27}},
     'cnn_a': {"module": "nnet_lib", "function": "cnn_a",
-            "parameters": {}},
+              "parameters": {"optimizer": "Adam", "learning_rate": 0.01, "loss": "categorical_crossentropy",
+                           "metrics": "accuracy", "batch_size": 128, "epochs": 20}},
     'rnn_a': {"module": "nnet_lib", "function": "rnn_a",
-            "parameters": {}}
+              "parameters": {"optimizer": "Adam", "learning_rate": 0.01, "loss": "categorical_crossentropy",
+                           "metrics": "accuracy", "batch_size": 128, "epochs": 20}}
 }
 
 def read_file(index, type, rootDir):
@@ -79,7 +81,7 @@ def load_data(rootDir, sampRateT, sampRateF):
                                                                           np.count_nonzero(train_label == 2),
                                                                           np.count_nonzero(train_label == 3),
                                                                           np.count_nonzero(train_label == 4),
-                                                                          np.count_nonzero(train_label == 5)))
+                                                                          np.count_nonzero(train_label == 0)))
 
     return train_data, train_label, test_data, test_label
 
@@ -87,15 +89,15 @@ def preprocess_data(train_data, train_label, test_data, test_label, classify_met
 
     if classify_method.lower() in ['pca', 'lda', 'ica', 'lr', 'svm', 'decision tree', 'knn',
                                     'random forest', 'ada boost', 'gradient boost', 'xgboost']:
-        print('preprocess data format for ML classifier:\n')
+        print('preprocess data format for ML classifier:')
         train_data = train_data.reshape(train_data.shape[0], -1)
         test_data = test_data.reshape(test_data.shape[0], -1)
     elif classify_method.lower() in ['cnn_a']:
-        print('preprocess data format for CNN classifier:\n')
+        print('preprocess data format for CNN classifier:')
         train_label = to_categorical(train_label, num_classes=5)
         test_label = to_categorical(test_label, num_classes=5)
     elif classify_method.lower() in ['rnn_a']:
-        print('preprocess data format for RNN classifier:\n')
+        print('preprocess data format for RNN classifier:')
         train_label = to_categorical(train_label, num_classes=5)
         test_label = to_categorical(test_label, num_classes=5)
         train_data = np.squeeze(train_data)
