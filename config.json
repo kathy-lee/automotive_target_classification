@@ -4,11 +4,16 @@
     "sample_rate_t": 2,
     "sample_rate_f": 2
   },
-  "dimension_reduction":{
+  "dimension_reduction": {
     "method": "pca",
     "n_components": 30
   },
   "classifier": {
-    "method": "gradient boost"
+    "method": "lr",
+    "parameter": {
+      "solver": "lbfgs",
+      "multi_class": "multinomial",
+      "max_iter": 500
+    }
   }
 }

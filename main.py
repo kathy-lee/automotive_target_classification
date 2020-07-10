@@ -1,5 +1,5 @@
 import argparse
-from load_dataset import load_data, write_log, algo_map, preprocess_data, show_learncurve
+from load_dataset import load_data, write_log, algo_map, preprocess_data, plot_learncurve
 import json
 import sys
 import importlib
@@ -34,16 +34,18 @@ def train(args):
 
     print('\nbegin training process.')
     classify_method = paramset["classifier"]["method"]
+    classify_parameter = paramset["classifier"]["parameter"]
     if "dimension_reduction" not in paramset:
         train_data, train_label, test_data, test_label = preprocess_data(train_data_raw, train_label_raw, test_data_raw, test_label_raw, classify_method)
     module = importlib.import_module(algo_map[classify_method]["module"])
     if algo_map[classify_method]["module"] == "nnet_lib":
         #classifier = getattr(module, algo_map[classify_method]["function"])(train_data, train_label)
-        classifier, history = getattr(module, "nnet_training")(train_data, train_label, classify_method, **algo_map[classify_method]["parameters"])
-        show_learncurve(history)
+        classifier, history = getattr(module, "nnet_training")(train_data, train_label, classify_method, **classify_parameter)
+        plot_learncurve(classify_method, history=history)
     else:
-        classifier = getattr(module, algo_map[classify_method]["function"])(**algo_map[classify_method]["parameters"])
+        classifier = getattr(module, algo_map[classify_method]["function"])(**classify_parameter)
         classifier.fit(train_data, train_label)
+        plot_learncurve(classify_method, estimator=classifier, data=train_data, label=train_label, train_sizes=np.linspace(0.05, 0.2, 5))
 
     print('\npredict for test data.')
     test_pred = classifier.predict(test_data)

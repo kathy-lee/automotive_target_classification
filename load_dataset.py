@@ -2,6 +2,7 @@ from os.path import join as pjoin
 from tensorflow.keras.utils import to_categorical
 import h5py
 import matplotlib.pyplot as plt
+from sklearn.model_selection import learning_curve
 import numpy as np
 import time
 
@@ -11,7 +12,7 @@ algo_map = {
     'lda': {"module": "sklearn.discriminant_analysis", "function": "LinearDiscriminantAnalysis"},
     'ica': {"module": "sklearn.decomposition", "function": "FastICA"},
     'lr':  {"module": "sklearn.linear_model", "function": "LogisticRegression",
-            "parameters": {"solver": 'lbfgs', "multi_class": 'multinomial', "max_iter": 500}},
+            "parameters": {}},
     'svm': {"module": "sklearn.svm", "function": "SVC",
             "parameters": {"C": 10, "kernel": "rbf", "gamma": 0.1}},
     'decision tree': {"module": "sklearn.tree", "function": "DecisionTreeClassifier",
@@ -25,15 +26,11 @@ algo_map = {
     'gradient boost': {"module": "sklearn.ensemble", "function": "GradientBoostingClassifier",
                        "parameters": {"n_estimators": 200, "learning_rate": 0.1}},
     'xgboost': {"module": "xgboost", "function": "XGBClassifier",
-                "parameters": {"learning_rate": 0.1,"n_estimators": 100, "max_depth": 5, "min_child_weight": 1,
-                               "gamma": 0, "subsample": 0.8, "colsample_bytree": 0.8, "objective": 'binary:logistic',
-                               "nthread": 4, "scale_pos_weight": 1, "seed": 27}},
+                "parameters": {}},
     'cnn_a': {"module": "nnet_lib", "function": "cnn_a",
-              "parameters": {"optimizer": "Adam", "learning_rate": 0.01, "loss": "categorical_crossentropy",
-                           "metrics": "accuracy", "batch_size": 128, "epochs": 20}},
+              "parameters": {}},
     'rnn_a': {"module": "nnet_lib", "function": "rnn_a",
-              "parameters": {"optimizer": "Adam", "learning_rate": 0.01, "loss": "categorical_crossentropy",
-                           "metrics": "accuracy", "batch_size": 128, "epochs": 5}}
+              "parameters": {}}
 }
 
 def read_file(index, type, rootDir):
@@ -123,7 +120,7 @@ def write_log(paramset, result, classifier=None, history=None):
         f.write(current_time)
         f.write("resample in time axis: %d\n" % paramset["sample_rate"]["sample_rate_t"])
         f.write("resample in frequency axis: %d\n\n" % paramset["sample_rate"]["sample_rate_f"])
-        if "dimension_redduction" in paramset:
+        if "dimension_reduction" in paramset:
             f.write("dimension reduction method: %s\n" % paramset["dimension_reduction"]["method"])
             f.write("dimension after reduction: %d\n" % paramset["dimension_reduction"]["n_components"])
             f.write("%s parameters: \n" % paramset["dimension_reduction"]["method"])
@@ -131,11 +128,13 @@ def write_log(paramset, result, classifier=None, history=None):
                 f.write("\t%s : %s\n" % (key,str(value)))
         f.write("classifier method: %s\n" % paramset["classifier"]["method"])
         f.write("%s parameters: \n" % paramset["classifier"]["method"])
-        for key, value in algo_map[paramset["classifier"]["method"]]["parameters"].items():
+        # for key, value in algo_map[paramset["classifier"]["method"]]["parameters"].items():
+        #     f.write("\t%s : %s\n" % (key,str(value)))
+        for key, value in paramset["classifier"]["parameter"].items():
             f.write("\t%s : %s\n" % (key,str(value)))
 
         # write train/test results
-        f.write("\ntraining performance: \n")
+        f.write("\nTRAINING PERFORMANCE: \n")
         f.write("confusion matrix: \n")
         train_conf = np.array_str(result["train_conf"])
         f.write(train_conf)
@@ -144,7 +143,7 @@ def write_log(paramset, result, classifier=None, history=None):
         train_recall = np.array_str(result["train_recall"])
         f.write("average recall score: %s\n" % train_recall)
 
-        f.write("\ntest performance: \n")
+        f.write("\nTEST PERFORMANCE: \n")
         f.write("confusion matrix: \n")
         test_conf = np.array_str(result["test_conf"])
         f.write(test_conf)
@@ -154,7 +153,6 @@ def write_log(paramset, result, classifier=None, history=None):
         f.write("average recall score: %s\n" % test_recall)
 
         if classifier:
-            #f.write(classifier.summary)
             f.write("\ntraining accuracy:\n")
             f.write(' '.join(map(str, history.history['accuracy'])))
             f.write("\ntraining loss:\n")
@@ -162,27 +160,52 @@ def write_log(paramset, result, classifier=None, history=None):
             f.write("\nvalidation accuracy:\n")
             f.write(' '.join(map(str, history.history['val_accuracy'])))
             f.write("\nvalidation loss: \n" )
-            f.write( ' '.join(map(str, history.history['val_loss'])))
-            f.write("\n")
+            f.write(' '.join(map(str, history.history['val_loss'])))
+            f.write("\n\n")
             classifier.summary(print_fn=lambda x: f.write(x + '\n'))
     return filename
 
-def show_learncurve(history):
-    plt.figure()
-    plt.subplot(211)
-    plt.plot(history.history['accuracy'])
-    plt.plot(history.history['val_accuracy'])
-    plt.xlabel('epoch')
-    plt.ylabel('accuracy')
-    plt.legend(['train', 'test'], loc='lower right')
-    plt.grid(True)
-    plt.subplot(212)
-    plt.plot(history.history['loss'])
-    plt.plot(history.history['val_loss'])
-    plt.xlabel('epoch')
-    plt.ylabel('loss')
-    plt.legend(['train', 'test'], loc='upper right')
-    plt.grid(True)
-    plt.suptitle('model accuracy and loss')
-    plt.tight_layout()
-    plt.show()
+def plot_learncurve(title, history=None, estimator=None, data=None, label=None, train_sizes=None):
+    if estimator is None:
+        plt.figure()
+        plt.subplot(211)
+        plt.plot(history.history['accuracy'])
+        plt.plot(history.history['val_accuracy'])
+        plt.xlabel('epoch')
+        plt.ylabel('accuracy')
+        plt.legend(['train', 'test'], loc='lower right')
+        plt.grid(True)
+        plt.subplot(212)
+        plt.plot(history.history['loss'])
+        plt.plot(history.history['val_loss'])
+        plt.xlabel('epoch')
+        plt.ylabel('loss')
+        plt.legend(['train', 'test'], loc='upper right')
+        plt.grid(True)
+        plt.suptitle('Model Accuracy and Loss with %s' % title)
+        plt.tight_layout()
+        plt.show()
+    else:
+        train_sizes, train_scores, test_scores = learning_curve(
+            estimator, data, label, cv=5, n_jobs=1, train_sizes=train_sizes)
+        train_scores_mean = np.mean(train_scores, axis=1)
+        train_scores_std = np.std(train_scores, axis=1)
+        test_scores_mean = np.mean(test_scores, axis=1)
+        test_scores_std = np.std(test_scores, axis=1)
+        plt.figure()
+        plt.fill_between(train_sizes, train_scores_mean - train_scores_std,
+                         train_scores_mean + train_scores_std, alpha=0.1,
+                         color="r")
+        plt.fill_between(train_sizes, test_scores_mean - test_scores_std,
+                         test_scores_mean + test_scores_std, alpha=0.1, color="g")
+        plt.plot(train_sizes, train_scores_mean, 'o-', color="r",
+                 label="Training score")
+        plt.plot(train_sizes, test_scores_mean, 'o-', color="g",
+                 label="Cross-validation score")
+        plt.xlabel("Training examples")
+        plt.ylabel("Score")
+        plt.legend(loc="best")
+        plt.grid("on")
+        plt.title(title)
+        plt.show()
+
