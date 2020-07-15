@@ -154,7 +154,11 @@ def main():
     train_parser.set_defaults(func=train)
     show_parser.set_defaults(func=show)
     args = parser.parse_args()
-    args.func(args)
+    try:
+        args.func(args)
+    except AttributeError:
+        parser.print_help()
+        parser.exit()
 
 if __name__ =="__main__":
     main()
