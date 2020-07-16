@@ -4,15 +4,15 @@ from tensorflow.keras.utils import to_categorical, normalize
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.regularizers import l1,l2
 import numpy as np
-from load_dataset import load_data, preprocess_data
+from load_dataset import load_data, preprocess_data, plot_learncurve
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from time import process_time
 import matplotlib.pyplot as plt
 
 data_dir = '/home/kangle/dataset/PedBicCarData'
-train_data, train_label, test_data, test_label = load_data(data_dir, 2, 2)
-train_data, train_label, test_data, test_label = preprocess_data(train_data, train_label, test_data, test_label, 'rnn')
+train_data, train_label, test_data, test_label = load_data(data_dir, 2, 2, 6, 1)
+train_data, train_label, test_data, test_label = preprocess_data(train_data, train_label, test_data, test_label, 'rnn_a')
 
 # train_data = np.squeeze(train_data)
 # test_data = np.squeeze(test_data)
@@ -31,12 +31,12 @@ model.add(Dense(128, activation='relu'));
 model.add(Dropout(0.2));
 model.add(Dense(5, activation='softmax'))
 
-opt = Adam(learning_rate=0.01)
-model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+opt = Adam(learning_rate=0.001)
+model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
 
 history = model.fit(train_data,
                     train_label,
-                    epochs=10,
+                    epochs=100,
                     batch_size=128,
                     verbose=2,
                     validation_data=(val_data, val_label))
@@ -50,21 +50,5 @@ t_end = process_time()
 t_cost = t_end - t_start
 print(f"Test Accuracy: {acc:.4f}, Inference time: {t_cost:.2f}s")
 
-plt.figure()
-plt.subplot(211)
-plt.plot(history.history['accuracy'])
-plt.plot(history.history['val_accuracy'])
-plt.xlabel('epoch')
-plt.ylabel('accuracy')
-plt.legend(['train', 'test'], loc='lower right')
-plt.grid(True)
-plt.subplot(212)
-plt.plot(history.history['loss'])
-plt.plot(history.history['val_loss'])
-plt.xlabel('epoch')
-plt.ylabel('loss')
-plt.legend(['train', 'test'], loc='upper right')
-plt.grid(True)
-plt.suptitle('model accuracy and loss')
-plt.tight_layout()
-plt.show()
+plot_learncurve("LSTM", history=history)
+
