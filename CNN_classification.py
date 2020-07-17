@@ -3,6 +3,8 @@ from tensorflow.keras.layers import Conv2D,MaxPooling2D,Flatten,Dense,Dropout,Ba
 from tensorflow.keras.utils import to_categorical, normalize
 from tensorflow.keras.optimizers import Adam, SGD
 from tensorflow.keras.regularizers import l1,l2
+from tensorflow.keras.initializers import RandomUniform
+from tensorflow.keras.callbacks import LearningRateScheduler, EarlyStopping
 import numpy as np
 from load_dataset import load_data, preprocess_data, plot_learncurve
 from sklearn.preprocessing import StandardScaler
@@ -21,31 +23,45 @@ print("training data: %d" % train_data.shape[0])
 print("validation data: %d" % val_data.shape[0])
 
 model = models.Sequential()
-regularizer = l2(1e-2)
-model.add(Conv2D(32, [5, 5], input_shape=train_data.shape[1:], activation='relu', kernel_initializer='he_uniform',
+regularizer = None#l2(1e-4)
+initializer = RandomUniform()#
+model.add(BatchNormalization())
+model.add(Conv2D(32, [5, 5], input_shape=train_data.shape[1:], activation='relu', kernel_initializer=initializer,
                  kernel_regularizer=regularizer, name='conv_1'))
 model.add(MaxPooling2D())
-
-
+model.add(Conv2D(64, [5, 5],  activation='relu', kernel_initializer=initializer,
+                 kernel_regularizer=regularizer, name='conv_2'))
+model.add(MaxPooling2D())
+model.add(Conv2D(128, [5, 5],  activation='relu', kernel_initializer=initializer,
+                 kernel_regularizer=regularizer, name='conv_3'))
+model.add(MaxPooling2D())
 model.add(Flatten())
-model.add(Dense(120, activation='relu', kernel_initializer='he_uniform', kernel_regularizer=regularizer, name='dense_1'))
-#model.add(Dropout(0.5))
-model.add(Dense(84, activation='relu', kernel_initializer='he_uniform', kernel_regularizer=regularizer, name='dense_2'))
-#model.add(Dropout(0.5))
+model.add(Dense(240, activation='relu', kernel_initializer=initializer, kernel_regularizer=regularizer, name='dense_1'))
+model.add(Dropout(0.5))
+model.add(Dense(168, activation='relu', kernel_initializer=initializer, kernel_regularizer=regularizer, name='dense_2'))
+model.add(Dropout(0.5))
 model.add(Dense(5, activation='softmax', name='dense_3'))
 
-model.summary()
+def piecewise_constant_fn(epoch):
+    if epoch < 10:
+        return 0.001
+    elif epoch < 20:
+        return 0.0002
+    else:
+        return 0.0001
 
+lr_scheduler = LearningRateScheduler(piecewise_constant_fn)
+early_stop = EarlyStopping(monitor='val_loss', patience=2)
 opt = Adam(learning_rate=0.001)
-opt = SGD(learning_rate=0.01, momentum=0.9)
+#opt = SGD(learning_rate=0.1, momentum=0.9, decay=1e-2/epochs)
 model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
-
 history = model.fit(train_data,
                     train_label,
                     epochs=30,
                     batch_size=32,
                     verbose=2,
-                    validation_data=(val_data, val_label))
+                    validation_data=(val_data, val_label),
+                    callbacks=[lr_scheduler])
 
 # evaluate model
 test_pred = model.predict(test_data)
