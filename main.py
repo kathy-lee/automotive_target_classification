@@ -135,11 +135,15 @@ def show_data(data, label, indices, pred=[]):
 
 def show(args):
     params = vars(args)
-    train_data, train_label, _test_data, _test_label = load_data(params["datadir"], 1, 1)
-    indices = np.arange(params["start"], train_data.shape[0]-1)
-    show_data(train_data[params["start"]:], train_label[params["start"]:], indices)
+    train_data, train_label, test_data, test_label = load_data(params["datadir"], 1, 1)
+    if params["type"] == "train":
+        indices = np.arange(params["start"], train_data.shape[0]-1)
+        show_data(train_data[params["start"]:], train_label[params["start"]:], indices)
+    else:
+        indices = np.arange(params["start"], test_data.shape[0]-1)
+        show_data(test_data[params["start"]:], test_label[params["start"]:], indices)
 
-
+        
 def main():
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(help='subcommand help')
@@ -150,6 +154,7 @@ def main():
     show_parser = subparsers.add_parser('show', help='show help')
     show_parser.add_argument('--datadir', help='data directory', type=str)
     show_parser.add_argument('--start', help='start image index', type=int)
+    show_parser.add_argument('--type', help='training data or test data', type=str)
 
     train_parser.set_defaults(func=train)
     show_parser.set_defaults(func=show)

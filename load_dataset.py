@@ -46,16 +46,17 @@ def read_file(index, type, rootDir):
     data = np.array(f[key])
     return data
 
-def load_data(rootDir, sampRateT, sampRateF):
+def load_data(rootDir, sampRateT=1, sampRateF=1, lenTrain=1, lenTest=1):
     print('load the data.')
     train_data = np.array([])
-    for i in range(1,21):
+
+    for i in range(1,lenTrain+1):
         dataBlock = read_file(i, 'trainData', rootDir)
         dataBlock = dataBlock[:,:,0::sampRateT,0::sampRateF]
         train_data = np.vstack([train_data, dataBlock]) if train_data.size else dataBlock
 
     test_data = np.array([])
-    for i in range(1,6):
+    for i in range(1,lenTest+1):
         dataBlock = read_file(i, 'testData', rootDir)
         dataBlock = dataBlock[:, :, 0::sampRateT, 0::sampRateF]
         test_data = np.vstack([test_data, dataBlock]) if test_data.size else dataBlock
@@ -66,9 +67,11 @@ def load_data(rootDir, sampRateT, sampRateF):
     # read label
     train_label = read_file(0, 'trainLabel', rootDir)
     train_label = train_label.flatten()
+    train_label = train_label[:lenTrain*1000]
     train_label -= 1
     test_label = read_file(0, 'testLabel', rootDir)
     test_label = test_label.flatten()
+    test_label = test_label[:lenTest*1000]
     test_label -= 1
 
     print(train_data.shape)
@@ -79,6 +82,11 @@ def load_data(rootDir, sampRateT, sampRateF):
                                                                           np.count_nonzero(train_label == 3),
                                                                           np.count_nonzero(train_label == 4),
                                                                           np.count_nonzero(train_label == 0)))
+    print("Data sample distribution in training set: %d %d %d %d %d\n" % (np.count_nonzero(test_label == 1),
+                                                                          np.count_nonzero(test_label == 2),
+                                                                          np.count_nonzero(test_label == 3),
+                                                                          np.count_nonzero(test_label == 4),
+                                                                          np.count_nonzero(test_label == 0)))
 
     return train_data, train_label, test_data, test_label
 
