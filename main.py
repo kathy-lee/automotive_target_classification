@@ -1,11 +1,11 @@
 import argparse
-from load_dataset import load_data, write_log, algo_map, preprocess_data, plot_learncurve
 import json
 import sys
 import importlib
-from sklearn.metrics import confusion_matrix, precision_score, recall_score
 import matplotlib.pyplot as plt
 import numpy as np
+from sklearn.metrics import confusion_matrix, precision_score, recall_score
+from load_dataset import load_data, write_log, algo_map, preprocess_data, plot_learncurve
 
 def train(args):
     params = vars(args)
@@ -83,13 +83,13 @@ def train(args):
     }
 
     print('\ngenerate report file \t')
-    #logFile = write_log(paramset, pred_result)
+    #log_file = write_log(paramset, pred_result)
     if algo_map[classify_method]["module"] == "nnet_lib":
-        logFile = write_log(paramset, pred_result, classifier, history)
+        log_file = write_log(paramset, pred_result, classifier, history)
     else:
-        logFile = write_log(paramset, pred_result)
+        log_file = write_log(paramset, pred_result)
 
-    print(logFile)
+    print(log_file)
 
     if params["show_misclassified"]:
         indices = [i for i in range(len(test_label)) if test_pred[i] != test_label[i]]
@@ -98,33 +98,33 @@ def train(args):
 
 def show_data(data, label, indices, pred=[]):
     fig = plt.figure()
-    global cursor
-    cursor = 0
-    plt.imshow(data[cursor, :, :, 0])
-    global category_list
-    category_list = ['1 pedestrian', '1 bicyclist', '1 pedestrian and 1 bicyclist', '2 pedestrians', '2 bicyclists']
-    title = 'sample index:' + str(indices[cursor]) \
-            + ', category: ' + str(category_list[label[cursor]])
+    global CURSOR
+    CURSOR = 0
+    plt.imshow(data[CURSOR, :, :, 0])
+    global CATEGORY_LIST
+    CATEGORY_LIST = ['1 pedestrian', '1 bicyclist', '1 pedestrian and 1 bicyclist', '2 pedestrians', '2 bicyclists']
+    title = 'sample index:' + str(indices[CURSOR]) \
+            + ', category: ' + str(CATEGORY_LIST[label[CURSOR]])
     if len(pred) > 0:
-        title += ', misclassified as: ' + str(category_list[pred[cursor]])
+        title += ', misclassified as: ' + str(CATEGORY_LIST[pred[CURSOR]])
     plt.title(title)
     fig.canvas.draw()
 
     def press(event):
-        global cursor
+        global CURSOR
         if event.key == 'escape':
             sys.exit(0)
         if event.key == 'left' or event.key == 'up':
-            cursor = cursor - 1 if cursor > 0 else 0
+            CURSOR = CURSOR - 1 if CURSOR > 0 else 0
         elif event.key == 'right' or event.key == 'down' or event.key == ' ':
-            cursor = cursor + 1 if cursor < data.shape[0] - 1 else data.shape[0] - 1
+            CURSOR = CURSOR + 1 if CURSOR < data.shape[0] - 1 else data.shape[0] - 1
         sys.stdout.flush()
-        plt.imshow(data[cursor, :, :, 0])
-        global category_list
-        title = 'sample index:' + str(indices[cursor]) \
-                + ', category: ' + str(category_list[label[cursor]])
+        plt.imshow(data[CURSOR, :, :, 0])
+        global CATEGORY_LIST
+        title = 'sample index:' + str(indices[CURSOR]) \
+                + ', category: ' + str(CATEGORY_LIST[label[CURSOR]])
         if len(pred) > 0:
-            title += ', misclassified as: ' + str(category_list[pred[cursor]])
+            title += ', misclassified as: ' + str(CATEGORY_LIST[pred[CURSOR]])
         plt.title(title)
         fig.canvas.draw()
 
@@ -143,7 +143,7 @@ def show(args):
         indices = np.arange(params["start"], test_data.shape[0]-1)
         show_data(test_data[params["start"]:], test_label[params["start"]:], indices)
 
-
+        
 def main():
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(help='subcommand help')
@@ -159,7 +159,11 @@ def main():
     train_parser.set_defaults(func=train)
     show_parser.set_defaults(func=show)
     args = parser.parse_args()
-    args.func(args)
+    try:
+        args.func(args)
+    except AttributeError:
+        parser.print_help()
+        parser.exit()
 
-if __name__ =="__main__":
+if __name__ == "__main__":
     main()
