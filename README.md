@@ -17,7 +17,7 @@ This dataset is based on matlab simulation. See [here](https://www.mathworks.com
 ### Data preparation
 
 1. Download data from [link](https://www.mathworks.com/supportfiles/SPT/data/PedBicCarData.zip).
-2. Convert data file to `HDF5` format by *.m, convert label file to `HDF5` format by *.m.
+2. Convert data and label files to `HDF5` format with *.m and *.m respectively.
 
 ### Configurations
 
