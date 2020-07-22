@@ -26,9 +26,9 @@ print("validation data: %d" % val_data.shape[0])
 
 model = models.Sequential()
 model.add(LSTM(64, input_shape=(train_data.shape[1],train_data.shape[2])))
-model.add(Dropout(0.2));
-model.add(Dense(128, activation='relu'));
-model.add(Dropout(0.2));
+model.add(Dropout(0.2))
+model.add(Dense(128, activation='tanh'))
+model.add(Dropout(0.2))
 model.add(Dense(5, activation='softmax'))
 
 opt = Adam(learning_rate=0.001)
