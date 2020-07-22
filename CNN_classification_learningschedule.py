@@ -10,7 +10,7 @@ from sklearn.model_selection import train_test_split
 from time import process_time
 
 data_dir = '/home/kangle/dataset/PedBicCarData'
-train_data, train_label, test_data, test_label = load_data(data_dir, 2, 2, 5, 3)
+train_data, train_label, test_data, test_label = load_data(data_dir, 1, 1, 6, 1)
 
 train_data, train_label, test_data, test_label = preprocess_data(train_data, train_label, test_data, test_label, 'cnn_a')
 
@@ -20,34 +20,33 @@ print(train_data.shape)
 print(val_data.shape)
 
 model = models.Sequential()
-model.add(Conv2D(16, [10, 10], input_shape=train_data.shape[1:], kernel_initializer='he_uniform', padding='same'))
+model.add(Conv2D(16, [10, 10], input_shape=train_data.shape[1:], kernel_initializer='glorot_uniform', padding='same'))
 model.add(BatchNormalization())
 model.add(ReLU())
 model.add(MaxPooling2D(pool_size=(10,10), strides=2))
 
-model.add(Conv2D(32, [5, 5], kernel_initializer='he_uniform', padding='same'))
+model.add(Conv2D(32, [5, 5], kernel_initializer='glorot_uniform', padding='same'))
 model.add(BatchNormalization())
 model.add(ReLU())
 model.add(MaxPooling2D(pool_size=(10,10), strides=2))
 
-model.add(Conv2D(32, [5, 5], kernel_initializer='he_uniform', padding='same'))
+model.add(Conv2D(32, [5, 5], kernel_initializer='glorot_uniform', padding='same'))
 model.add(BatchNormalization())
 model.add(ReLU())
 model.add(MaxPooling2D(pool_size=(10,10), strides=2))
 
-model.add(Conv2D(32, [5, 5], kernel_initializer='he_uniform', padding='same'))
+model.add(Conv2D(32, [5, 5], kernel_initializer='glorot_uniform', padding='same'))
 model.add(BatchNormalization())
 model.add(ReLU())
 model.add(MaxPooling2D(pool_size=(5,5), strides=2))
 
-model.add(Conv2D(32, [5, 5], kernel_initializer='he_uniform', padding='same'))
+model.add(Conv2D(32, [5, 5], kernel_initializer='glorot_uniform', padding='same'))
 model.add(BatchNormalization())
 model.add(ReLU())
 model.add(AveragePooling2D(pool_size=(2,2), strides=2))
-model.add(Flatten())
 
+model.add(Flatten())
 model.add(Dense(5, activation='softmax'))
-#model.add(Softmax())
 
 step = tf.Variable(0, trainable=False)
 boundaries = [1562, 3125]
@@ -64,7 +63,8 @@ model.fit(train_data, train_label,
                     epochs=30,
                     batch_size=128,
                     verbose=2,
-                    validation_data=(val_data, val_label))
+                    validation_data=(val_data, val_label),
+                    shuffle=True)
 
 # evaluate model
 t_start = process_time()
