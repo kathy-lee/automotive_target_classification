@@ -1,16 +1,14 @@
+import numpy as np
 from tensorflow.keras import models
 from tensorflow.keras.layers import Conv2D,MaxPooling2D,Flatten,Dense,Dropout,BatchNormalization
 from tensorflow.keras.utils import to_categorical, normalize
 from tensorflow.keras.optimizers import Adam, SGD
 from tensorflow.keras.regularizers import l1,l2
 from tensorflow.keras.initializers import RandomUniform, GlorotUniform, he_uniform
-from tensorflow.keras.callbacks import LearningRateScheduler, EarlyStopping, TensorBoard
-import numpy as np
+from tensorflow.keras.callbacks import LearningRateScheduler, EarlyStopping, TensorBoard, ModelCheckpoint
 from load_dataset import load_data, preprocess_data, plot_learncurve
-from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from time import process_time
-import matplotlib.pyplot as plt
 
 
 data_dir = '/home/kangle/dataset/PedBicCarData'
@@ -34,23 +32,13 @@ model = models.Sequential()
 regularizer = None#l2(1e-4)
 initializer = GlorotUniform()#RandomUniform()#
 #model.add(BatchNormalization())
-model.add(Conv2D(32, [3, 3], input_shape=train_data.shape[1:], activation='relu', kernel_initializer=initializer,
-                 kernel_regularizer=regularizer, name='conv_1'))
-# model.add(Conv2D(32, [3, 3], input_shape=train_data.shape[1:], activation='relu', kernel_initializer=initializer,
-#                  kernel_regularizer=regularizer, name='conv_11'))
+model.add(Conv2D(32, [3, 3], input_shape=train_data.shape[1:], activation='relu', kernel_initializer=initializer, kernel_regularizer=regularizer, name='conv_1'))
 model.add(MaxPooling2D())
-model.add(Conv2D(64, [3, 3],  activation='relu', kernel_initializer=initializer,
-                 kernel_regularizer=regularizer, name='conv_2'))
-# model.add(Conv2D(64, [3, 3],  activation='relu', kernel_initializer=initializer,
-#                  kernel_regularizer=regularizer, name='conv_22'))
+model.add(Conv2D(64, [3, 3],  activation='relu', kernel_initializer=initializer, kernel_regularizer=regularizer, name='conv_2'))
 model.add(MaxPooling2D())
-model.add(Conv2D(128, [3, 3],  activation='relu', kernel_initializer=initializer,
-                 kernel_regularizer=regularizer, name='conv_3'))
-# model.add(Conv2D(128, [3, 3],  activation='relu', kernel_initializer=initializer,
-#                  kernel_regularizer=regularizer, name='conv_33'))
+model.add(Conv2D(128, [3, 3],  activation='relu', kernel_initializer=initializer, kernel_regularizer=regularizer, name='conv_3'))
 model.add(MaxPooling2D())
-model.add(Conv2D(256, [3, 3],  activation='relu', kernel_initializer=initializer,
-                 kernel_regularizer=regularizer, name='conv_4'))
+model.add(Conv2D(256, [5, 5],  activation='relu', kernel_initializer=initializer, kernel_regularizer=regularizer, name='conv_4'))
 model.add(MaxPooling2D())
 model.add(Flatten())
 model.add(Dense(240, activation='relu', kernel_initializer=initializer, kernel_regularizer=regularizer, name='dense_1'))
@@ -58,6 +46,8 @@ model.add(Dropout(0.5))
 model.add(Dense(168, activation='relu', kernel_initializer=initializer, kernel_regularizer=regularizer, name='dense_2'))
 model.add(Dropout(0.5))
 model.add(Dense(5, activation='softmax', name='dense_3'))
+
+model.summary()
 
 def piecewise_constant_fn(epoch):
     if epoch < 10:
@@ -68,11 +58,12 @@ def piecewise_constant_fn(epoch):
         return 0.0001/2
 
 lr_scheduler = LearningRateScheduler(piecewise_constant_fn)
-early_stop = EarlyStopping(monitor='val_loss', patience=10)
+earlystop_callback = EarlyStopping(monitor='val_loss', patience=10)
 log_dir = "/home/kangle/Projects/radar_object_classification"
 tensorboard_callback = TensorBoard(log_dir=log_dir, histogram_freq=1)
+checkpoint_callback = ModelCheckpoint('best_model.h5', monitor='val_loss', mode='min', save_best_only=True, verbose=1)
 opt = Adam()
-#opt = SGD(learning_rate=0.1, momentum=0.9, decay=1e-2/epochs)
+# opt = SGD(learning_rate=0.1, momentum=0.9, decay=1e-2/epochs)
 model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
 history = model.fit(train_data,
                     train_label,
@@ -81,6 +72,9 @@ history = model.fit(train_data,
                     verbose=2,
                     validation_data=(val_data, val_label),
                     callbacks=[lr_scheduler, tensorboard_callback])
+
+# load the saved best model
+model = models.load_model('best_model.h5')
 
 # evaluate model
 test_pred = model.predict(test_data)
