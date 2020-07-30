@@ -9,6 +9,7 @@ from tensorflow.keras.callbacks import LearningRateScheduler, EarlyStopping, Ten
 from load_dataset import load_data, preprocess_data, plot_learncurve
 from sklearn.model_selection import train_test_split
 from time import process_time
+from lr_finder import LRFinder
 
 
 data_dir = '/home/kangle/dataset/PedBicCarData'
@@ -38,7 +39,7 @@ model.add(Conv2D(64, [3, 3],  activation='relu', kernel_initializer=initializer,
 model.add(MaxPooling2D())
 model.add(Conv2D(128, [3, 3],  activation='relu', kernel_initializer=initializer, kernel_regularizer=regularizer, name='conv_3'))
 model.add(MaxPooling2D())
-model.add(Conv2D(256, [5, 5],  activation='relu', kernel_initializer=initializer, kernel_regularizer=regularizer, name='conv_4'))
+model.add(Conv2D(256, [3, 3],  activation='relu', kernel_initializer=initializer, kernel_regularizer=regularizer, name='conv_4'))
 model.add(MaxPooling2D())
 model.add(Flatten())
 model.add(Dense(240, activation='relu', kernel_initializer=initializer, kernel_regularizer=regularizer, name='dense_1'))
@@ -65,25 +66,31 @@ checkpoint_callback = ModelCheckpoint('best_model.h5', monitor='val_loss', mode=
 opt = Adam()
 # opt = SGD(learning_rate=0.1, momentum=0.9, decay=1e-2/epochs)
 model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
-history = model.fit(train_data,
-                    train_label,
-                    epochs=30,
-                    batch_size=16,
-                    verbose=2,
-                    validation_data=(val_data, val_label),
-                    callbacks=[lr_scheduler, tensorboard_callback])
 
-# load the saved best model
-model = models.load_model('best_model.h5')
+lr_finder = LRFinder(model, stop_factor=4)
+steps = np.ceil(len(train_label)/32)
+lr_finder.find((train_data, train_label), steps_per_epoch=steps, start_lr=1e-6, lr_mult=1.01, batch_size=32)
+lr_finder.plot_loss()
 
-# evaluate model
-test_pred = model.predict(test_data)
-
-t_start = process_time()
-_,acc = model.evaluate(test_data, test_label, batch_size=16, verbose=2)
-t_end = process_time()
-t_cost = t_end - t_start
-print(f"Test Accuracy: {acc:.4f}, Inference time: {t_cost:.2f}s")
-
-
-plot_learncurve("CNN", history=history)
+# history = model.fit(train_data,
+#                     train_label,
+#                     epochs=30,
+#                     batch_size=16,
+#                     verbose=2,
+#                     validation_data=(val_data, val_label),
+#                     callbacks=[lr_scheduler, tensorboard_callback])
+#
+# # load the saved best model
+# # model = models.load_model('best_model.h5')
+#
+# # evaluate model
+# test_pred = model.predict(test_data)
+#
+# t_start = process_time()
+# _,acc = model.evaluate(test_data, test_label, batch_size=16, verbose=2)
+# t_end = process_time()
+# t_cost = t_end - t_start
+# print(f"Test Accuracy: {acc:.4f}, Inference time: {t_cost:.2f}s")
+#
+#
+# plot_learncurve("CNN", history=history)
