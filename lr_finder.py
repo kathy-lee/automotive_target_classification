@@ -10,6 +10,7 @@ class LRFinder:
     Used to visually identify a good learning rate, given model and data.
     Reference:
         Original Paper: https://arxiv.org/abs/1506.01186
+        Reference Library: ktrain v0.19.x https://github.com/amaiya/ktrain
     """
 
     def __init__(self, model, stop_factor=4):

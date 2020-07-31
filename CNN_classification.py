@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 from tensorflow.keras import models
 from tensorflow.keras.layers import Conv2D,MaxPooling2D,Flatten,Dense,Dropout,BatchNormalization
 from tensorflow.keras.utils import to_categorical, normalize
@@ -10,6 +11,7 @@ from load_dataset import load_data, preprocess_data, plot_learncurve
 from sklearn.model_selection import train_test_split
 from time import process_time
 from lr_finder import LRFinder
+from sgdr import SGDRScheduler
 
 
 data_dir = '/home/kangle/dataset/PedBicCarData'
@@ -67,30 +69,39 @@ opt = Adam()
 # opt = SGD(learning_rate=0.1, momentum=0.9, decay=1e-2/epochs)
 model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
 
-lr_finder = LRFinder(model, stop_factor=4)
-steps = np.ceil(len(train_label)/32)
-lr_finder.find((train_data, train_label), steps_per_epoch=steps, start_lr=1e-6, lr_mult=1.01, batch_size=32)
-lr_finder.plot_loss()
+batch_size = 32
 
-# history = model.fit(train_data,
-#                     train_label,
-#                     epochs=30,
-#                     batch_size=16,
-#                     verbose=2,
-#                     validation_data=(val_data, val_label),
-#                     callbacks=[lr_scheduler, tensorboard_callback])
-#
-# # load the saved best model
-# # model = models.load_model('best_model.h5')
-#
-# # evaluate model
-# test_pred = model.predict(test_data)
-#
-# t_start = process_time()
-# _,acc = model.evaluate(test_data, test_label, batch_size=16, verbose=2)
-# t_end = process_time()
-# t_cost = t_end - t_start
-# print(f"Test Accuracy: {acc:.4f}, Inference time: {t_cost:.2f}s")
-#
-#
-# plot_learncurve("CNN", history=history)
+steps = np.ceil(len(train_label)/batch_size)
+# lr_finder = LRFinder(model, stop_factor=4)
+# lr_finder.find((train_data, train_label), steps_per_epoch=steps, start_lr=1e-6, lr_mult=1.01, batch_size=batch_size)
+# lr_finder.plot_loss()
+
+min_lr = 4e-5
+max_lr = 2e-3
+sgdr = SGDRScheduler(min_lr, max_lr, steps, lr_decay=1.0, cycle_length=1, mult_factor=2)
+
+history = model.fit(train_data,
+                    train_label,
+                    epochs=20,
+                    batch_size=batch_size,
+                    verbose=2,
+                    validation_data=(val_data, val_label),
+                    callbacks=[sgdr, tensorboard_callback])
+
+# load the saved best model
+# model = models.load_model('best_model.h5')
+
+# evaluate model
+test_pred = model.predict(test_data)
+
+t_start = process_time()
+_,acc = model.evaluate(test_data, test_label, batch_size=batch_size, verbose=2)
+t_end = process_time()
+t_cost = t_end - t_start
+print(f"Test Accuracy: {acc:.4f}, Inference time: {t_cost:.2f}s")
+
+if 'lr' not in sgdr.history:
+    raise ValueError("no lr in history.")
+plt.plot(sgdr.history['lr'])
+plot_learncurve("CNN", history=history)
+
