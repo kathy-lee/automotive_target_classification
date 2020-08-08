@@ -23,18 +23,19 @@ print("Split training data into training and validation data:\n")
 print("training data: %d" % train_data.shape[0])
 print("validation data: %d" % val_data.shape[0])
 
-train_data -= np.mean(train_data, axis=0)
-#train_data /= np.std(train_data, axis=0)
-val_data -= np.mean(val_data, axis=0)
-#val_data /= np.std(val_data, axis=0)
-test_data -= np.mean(test_data, axis=0)
-#test_data /= np.std(test_data, axis=0)
+train_stats_mean = train_data.mean()
+train_stats_std = train_data.std()
+train_data -= train_stats_mean
+train_data /= train_stats_std
+val_data -= train_stats_mean
+val_data /= train_stats_std
+test_data -= train_stats_mean
+test_data /= train_stats_std
 print("After standardization:\n")
 
 model = models.Sequential()
 regularizer = None#l2(1e-4)
-initializer = GlorotUniform()#RandomUniform()#
-#model.add(BatchNormalization())
+initializer = GlorotUniform()
 model.add(Conv2D(32, [3, 3], input_shape=train_data.shape[1:], activation='relu', kernel_initializer=initializer, kernel_regularizer=regularizer, name='conv_1'))
 model.add(MaxPooling2D())
 model.add(Conv2D(64, [3, 3],  activation='relu', kernel_initializer=initializer, kernel_regularizer=regularizer, name='conv_2'))
@@ -69,15 +70,15 @@ opt = Adam()
 # opt = SGD(learning_rate=0.1, momentum=0.9, decay=1e-2/epochs)
 model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
 
-batch_size = 32
+batch_size = 16
 
 steps = np.ceil(len(train_label)/batch_size)
 # lr_finder = LRFinder(model, stop_factor=4)
 # lr_finder.find((train_data, train_label), steps_per_epoch=steps, start_lr=1e-6, lr_mult=1.01, batch_size=batch_size)
 # lr_finder.plot_loss()
 
-min_lr = 4e-5
-max_lr = 2e-3
+min_lr = 5e-5
+max_lr = 6e-4
 sgdr = SGDRScheduler(min_lr, max_lr, steps, lr_decay=1.0, cycle_length=1, mult_factor=2)
 
 history = model.fit(train_data,
@@ -86,7 +87,7 @@ history = model.fit(train_data,
                     batch_size=batch_size,
                     verbose=2,
                     validation_data=(val_data, val_label),
-                    callbacks=[sgdr, tensorboard_callback])
+                    callbacks=[sgdr])
 
 # load the saved best model
 # model = models.load_model('best_model.h5')
@@ -100,8 +101,10 @@ t_end = process_time()
 t_cost = t_end - t_start
 print(f"Test Accuracy: {acc:.4f}, Inference time: {t_cost:.2f}s")
 
-if 'lr' not in sgdr.history:
-    raise ValueError("no lr in history.")
-plt.plot(sgdr.history['lr'])
+if 'lr' in sgdr.history:
+    plt.plot(sgdr.history['lr'])
+else:
+    raise ValueError("no lr info in history.")
+
 plot_learncurve("CNN", history=history)
 
