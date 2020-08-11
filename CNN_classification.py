@@ -12,6 +12,7 @@ from sklearn.model_selection import train_test_split
 from time import process_time
 from lr_finder import LRFinder
 from sgdr import SGDRScheduler
+from cyclic_lr import CyclicLR
 
 
 data_dir = '/home/kangle/dataset/PedBicCarData'
@@ -58,6 +59,30 @@ model.add(Dense(5, activation='softmax', name='dense_3'))
 
 model.summary()
 
+opt = Adam(learning_rate=1e-3)
+#opt = SGD(learning_rate=0.04, momentum=0.9, decay=1e-2)
+model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
+
+num_batchsize = 128
+num_epochs = 30
+steps = np.ceil(len(train_label)/num_batchsize)
+
+# learning rate range test
+# lr_finder = LRFinder(model, stop_factor=4)
+# lr_finder.find((train_data, train_label), steps_per_epoch=steps, start_lr=1e-6, lr_mult=1.01, batch_size=num_batchsize)
+# lr_finder.plot_loss()
+
+# SGDR learning rate policy
+# set learning rate range according to lr range test result
+# min_lr = 5e-5
+# max_lr = 2e-3
+# lr_scheduler = SGDRScheduler(min_lr, max_lr, steps, lr_decay=1.0, cycle_length=1, mult_factor=2)
+
+# one cycle learning rate policy
+# set max learning rate according to lr range test result
+max_lr = 1e-3
+lr_scheduler = CyclicLR(base_lr=max_lr/10, max_lr=max_lr, step_size=np.ceil(steps*num_epochs/2), max_momentum=0.95, min_momentum=0.85)
+
 def piecewise_constant_fn(epoch):
     if epoch < 10:
         return 1e-3
@@ -67,29 +92,18 @@ def piecewise_constant_fn(epoch):
         return 3e-4
 
 #lr_scheduler = LearningRateScheduler(piecewise_constant_fn)
-lr_scheduler = ReduceLROnPlateau()
+
+#lr_scheduler = ReduceLROnPlateau()
+
 earlystop_callback = EarlyStopping(monitor='val_loss', patience=10)
 log_dir = "/home/kangle/Projects/radar_object_classification"
 tensorboard_callback = TensorBoard(log_dir=log_dir, histogram_freq=1)
 checkpoint_callback = ModelCheckpoint('best_model.h5', monitor='val_loss', mode='min', save_best_only=True, verbose=1)
-opt = Adam(learning_rate=1e-3)
-#opt = SGD(learning_rate=0.04, momentum=0.9, decay=1e-2)
-model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
-
-batch_size = 128
-steps = np.ceil(len(train_label)/batch_size)
-# lr_finder = LRFinder(model, stop_factor=4)
-# lr_finder.find((train_data, train_label), steps_per_epoch=steps, start_lr=1e-6, lr_mult=1.01, batch_size=batch_size)
-# lr_finder.plot_loss()
-
-# min_lr = 5e-5
-# max_lr = 2e-3
-# sgdr = SGDRScheduler(min_lr, max_lr, steps, lr_decay=1.0, cycle_length=1, mult_factor=2)
 
 history = model.fit(train_data,
                     train_label,
-                    epochs=30,
-                    batch_size=batch_size,
+                    epochs=num_epochs,
+                    batch_size=num_batchsize,
                     verbose=2,
                     validation_data=(val_data, val_label),
                     callbacks=[lr_scheduler])
@@ -102,14 +116,18 @@ history = model.fit(train_data,
 test_pred = model.predict(test_data)
 
 t_start = process_time()
-_,acc = model.evaluate(test_data, test_label, batch_size=batch_size, verbose=2)
+_,acc = model.evaluate(test_data, test_label, batch_size=num_batchsize, verbose=2)
 t_end = process_time()
 t_cost = t_end - t_start
 print(f"Test Accuracy: {acc:.4f}, Inference time: {t_cost:.2f}s")
 
 plot_learncurve("CNN", history=history)
 
-# if 'lr' in sgdr.history:
-#     plt.plot(sgdr.history['lr'])
-# else:
-#     raise ValueError("no lr info in history.")
+if 'lr' in lr_scheduler.history:
+    plt.plot(lr_scheduler.history['lr'])
+    plt.xlabel('iterations')
+    plt.ylabel('learning rate')
+    plt.title('Learning Rate Schedule')
+    plt.show()
+else:
+    raise ValueError("no lr info in history.")
