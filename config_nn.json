@@ -5,14 +5,104 @@
     "sample_rate_f": 2
   },
   "classifier": {
-    "method": "rnn_a",
+    "method": "nn",
     "parameter": {
       "optimizer": "Adam",
+      "learning_rate_schedule": "piecewise",
+      "learning_rate_policy": {
+        "base_lr": 3e-4
+        "step_size": 10,
+        "decay_rate": 2
+      },
       "learning_rate": 0.001,
       "loss": "categorical_crossentropy",
       "metrics": "accuracy",
       "batch_size": 128,
       "epochs": 5
+    },
+    "model": {
+      "layer_01": {
+        "type": "Conv2D",
+        "filter_height": 3,
+        "filter_width": 3,
+        "channel": 32,
+        "initializer": "he_norm",
+        "activation": "relu",
+        "padding": "same",
+        "regularizer": "None"
+      },
+      "layer_02": {
+        "type": "MaxPooling2D"
+      },
+      "layer_03": {
+        "type": "Conv2D",
+        "filter_height": 3,
+        "filter_width": 3,
+        "channel": 64,
+        "initializer": "he_norm",
+        "activation": "relu",
+        "padding": "same",
+        "regularizer": "None"
+      },
+      "layer_04": {
+        "type": "MaxPooling2D"
+      },
+      "layer_05": {
+        "type": "Conv2D",
+        "filter_height": 3,
+        "filter_width": 3,
+        "channel": 128,
+        "initializer": "he_norm",
+        "activation": "relu",
+        "padding": "same",
+        "regularizer": "None"
+      },
+      "layer_06": {
+        "type": "MaxPooling2D"
+      },
+      "layer_07": {
+        "type": "Conv2D",
+        "filter_height": 3,
+        "filter_width": 3,
+        "channel": 256,
+        "initializer": "he_norm",
+        "activation": "relu",
+        "padding": "same",
+        "regularizer": "None"
+      },
+      "layer_08": {
+        "type": "MaxPooling2D"
+      },
+      "layer_09": {
+        "type": "Conv2D",
+        "filter_height": 3,
+        "filter_width": 3,
+        "channel": 256,
+        "initializer": "he_norm",
+        "activation": "relu",
+        "padding": "same",
+        "regularizer": "None"
+      },
+      "layer_10": {
+        "type": "AveragePooling2D"
+      },
+      "layer_11": {
+        "type": "Flatten"
+      },
+      "layer_12": {
+        "type": "Dense",
+        "units": 256,
+        "activation": "relu"
+      },
+      "layer_13": {
+        "type": "Dropout",
+        "rate": 0.2
+      },
+      "layer_14": {
+        "type": "Dense",
+        "units": 5,
+        "activation": "softmax"
+      }
     }
   }
 }
