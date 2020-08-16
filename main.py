@@ -5,7 +5,7 @@ import importlib
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.metrics import confusion_matrix, precision_score, recall_score
-from load_dataset import load_data, write_log, algo_map, preprocess_data, plot_learncurve
+from load_dataset import load_data, write_log, algo_map, preprocess_data, plot_learncurve, load_model, nnet_fit
 
 def train(args):
     params = vars(args)
@@ -38,10 +38,11 @@ def train(args):
     if "dimension_reduction" not in paramset:
         train_data, train_label, test_data, test_label = preprocess_data(train_data_raw, train_label_raw, test_data_raw, test_label_raw, classify_method)
     module = importlib.import_module(algo_map[classify_method]["module"])
-    if algo_map[classify_method]["module"] == "nnet_lib":
-        #classifier = getattr(module, algo_map[classify_method]["function"])(train_data, train_label)
-        classifier, history = getattr(module, "nnet_training")(train_data, train_label, classify_method, **classify_parameter)
-        plot_learncurve(classify_method, history=history)
+
+    if classify_method == "nn":
+        classifier = load_model(paramset["classifier"]["model"], train_data.shape)
+        history = nnet_fit(train_data, train_label, classifier, paramset["classifier"]["parameter"])
+        plot_learncurve(classify_method, history)
     else:
         classifier = getattr(module, algo_map[classify_method]["function"])(**classify_parameter)
         classifier.fit(train_data, train_label)

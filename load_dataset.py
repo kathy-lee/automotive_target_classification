@@ -1,5 +1,5 @@
 from os.path import join as pjoin
-from tensorflow.keras.utils import to_categorical
+import tensorflow.keras as K
 import h5py
 import matplotlib.pyplot as plt
 from sklearn.model_selection import learning_curve
@@ -27,6 +27,7 @@ algo_map = {
                        "parameters": {"n_estimators": 200, "learning_rate": 0.1}},
     'xgboost': {"module": "xgboost", "function": "XGBClassifier",
                 "parameters": {}},
+    'nn': {"module": "tensorflow.keras"},
     'cnn_a': {"module": "nnet_lib", "function": "cnn_a",
               "parameters": {}},
     'rnn_a': {"module": "nnet_lib", "function": "rnn_a",
@@ -77,12 +78,12 @@ def load_data(rootDir, sampRateT=1, sampRateF=1, lenTrain=1, lenTest=1):
     print(train_data.shape)
     print(test_data.shape)
 
-    print("Data sample distribution in training set: %d %d %d %d %d\n" % (np.count_nonzero(train_label == 1),
+    print("\nData sample distribution in training set: %d %d %d %d %d" % (np.count_nonzero(train_label == 1),
                                                                           np.count_nonzero(train_label == 2),
                                                                           np.count_nonzero(train_label == 3),
                                                                           np.count_nonzero(train_label == 4),
                                                                           np.count_nonzero(train_label == 0)))
-    print("Data sample distribution in training set: %d %d %d %d %d\n" % (np.count_nonzero(test_label == 1),
+    print("Data sample distribution in test set: %d %d %d %d %d" % (np.count_nonzero(test_label == 1),
                                                                           np.count_nonzero(test_label == 2),
                                                                           np.count_nonzero(test_label == 3),
                                                                           np.count_nonzero(test_label == 4),
@@ -94,17 +95,17 @@ def preprocess_data(train_data, train_label, test_data, test_label, classify_met
 
     if classify_method.lower() in ['pca', 'lda', 'ica', 'lr', 'svm', 'decision tree', 'knn',
                                     'random forest', 'ada boost', 'gradient boost', 'xgboost']:
-        print('preprocess data format for ML classifier:')
+        print('\nReformat data for ML classifier:')
         train_data = train_data.reshape(train_data.shape[0], -1)
         test_data = test_data.reshape(test_data.shape[0], -1)
     elif classify_method.lower() in ['cnn_a']:
         print('preprocess data format for CNN classifier:')
-        train_label = to_categorical(train_label, num_classes=5)
-        test_label = to_categorical(test_label, num_classes=5)
+        train_label = K.utils.to_categorical(train_label, num_classes=5)
+        test_label = K.utils.to_categorical(test_label, num_classes=5)
     elif classify_method.lower() in ['rnn_a']:
         print('preprocess data format for RNN classifier:')
-        train_label = to_categorical(train_label, num_classes=5)
-        test_label = to_categorical(test_label, num_classes=5)
+        train_label = K.utils.to_categorical(train_label, num_classes=5)
+        test_label = K.utils.to_categorical(test_label, num_classes=5)
         train_data = np.squeeze(train_data)
         test_data = np.squeeze(test_data)
         train_data = np.transpose(train_data, (0, 2, 1))
@@ -217,3 +218,20 @@ def plot_learncurve(title, history=None, estimator=None, data=None, label=None, 
         plt.title(title)
         plt.show()
 
+def without_keys(dict, keys):
+    return {x: dict[x] for x in dict if x not in keys}
+
+def load_model(model_layers, data_shape):
+    nn_input = K.layers.Input(data_shape[1:])
+    for i, layer in enumerate(model_layers):
+        para = without_keys(layer, {"name", "type"})
+        if i == 0:
+            x = getattr(K, layer["type"])(para)(nn_input)
+        else:
+            x = getattr(K, layer["type"])(para)(x)
+    model = K.models.Model(inputs=nn_input, outputs=x)
+    return model
+
+def nnet_fit(model, train_para):
+
+    return history
