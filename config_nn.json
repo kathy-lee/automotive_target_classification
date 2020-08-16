@@ -20,8 +20,9 @@
       "batch_size": 128,
       "epochs": 5
     },
-    "model": {
-      "layer_01": {
+    "model": [
+      {
+        "name": "layer_01",
         "type": "Conv2D",
         "filter_height": 3,
         "filter_width": 3,
@@ -31,10 +32,12 @@
         "padding": "same",
         "regularizer": "None"
       },
-      "layer_02": {
+      {
+        "name": "layer_02",
         "type": "MaxPooling2D"
       },
-      "layer_03": {
+      {
+        "name": "layer_03",
         "type": "Conv2D",
         "filter_height": 3,
         "filter_width": 3,
@@ -44,10 +47,12 @@
         "padding": "same",
         "regularizer": "None"
       },
-      "layer_04": {
+      {
+        "name": "layer_04",
         "type": "MaxPooling2D"
       },
-      "layer_05": {
+      {
+        "name": "layer_05",
         "type": "Conv2D",
         "filter_height": 3,
         "filter_width": 3,
@@ -57,10 +62,12 @@
         "padding": "same",
         "regularizer": "None"
       },
-      "layer_06": {
+      {
+        "name": "layer_06",
         "type": "MaxPooling2D"
       },
-      "layer_07": {
+      {
+        "name": "layer_07",
         "type": "Conv2D",
         "filter_height": 3,
         "filter_width": 3,
@@ -70,10 +77,12 @@
         "padding": "same",
         "regularizer": "None"
       },
-      "layer_08": {
+      {
+        "name": "layer_08",
         "type": "MaxPooling2D"
       },
-      "layer_09": {
+      {
+        "name": "layer_09",
         "type": "Conv2D",
         "filter_height": 3,
         "filter_width": 3,
@@ -83,26 +92,31 @@
         "padding": "same",
         "regularizer": "None"
       },
-      "layer_10": {
+      {
+        "name": "layer_10",
         "type": "AveragePooling2D"
       },
-      "layer_11": {
+      {
+        "name": "layer_11",
         "type": "Flatten"
       },
-      "layer_12": {
+      {
+        "name": "layer_12",
         "type": "Dense",
         "units": 256,
         "activation": "relu"
       },
-      "layer_13": {
+      {
+        "name": "layer_13",
         "type": "Dropout",
         "rate": 0.2
       },
-      "layer_14": {
+      {
+        "name": "layer_14",
         "type": "Dense",
         "units": 5,
         "activation": "softmax"
       }
-    }
+    ]
   }
 }
