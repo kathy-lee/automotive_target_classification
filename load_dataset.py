@@ -1,8 +1,8 @@
 from os.path import join as pjoin
+from sklearn.model_selection import learning_curve, train_test_split
 import tensorflow.keras as K
 import h5py
 import matplotlib.pyplot as plt
-from sklearn.model_selection import learning_curve
 import numpy as np
 import time
 
@@ -88,37 +88,64 @@ def load_data(rootDir, sampRateT=1, sampRateF=1, lenTrain=1, lenTest=1):
                                                                           np.count_nonzero(test_label == 3),
                                                                           np.count_nonzero(test_label == 4),
                                                                           np.count_nonzero(test_label == 0)))
+    dataset = {
+        "train_data": train_data,
+        "train_label": train_label,
+        "test_data": test_data,
+        "test_label": test_label
+    }
+    return dataset
 
-    return train_data, train_label, test_data, test_label
-
-def preprocess_data(train_data, train_label, test_data, test_label, classify_method):
+def preprocess_data(dataset, classify_method):
 
     if classify_method.lower() in ['pca', 'lda', 'ica', 'lr', 'svm', 'decision tree', 'knn',
                                     'random forest', 'ada boost', 'gradient boost', 'xgboost']:
         print('\nReformat data for ML classifier:')
-        train_data = train_data.reshape(train_data.shape[0], -1)
-        test_data = test_data.reshape(test_data.shape[0], -1)
-    elif classify_method.lower() in ['cnn_a']:
-        print('preprocess data format for CNN classifier:')
-        train_label = K.utils.to_categorical(train_label, num_classes=5)
-        test_label = K.utils.to_categorical(test_label, num_classes=5)
-    elif classify_method.lower() in ['rnn_a']:
-        print('preprocess data format for RNN classifier:')
-        train_label = K.utils.to_categorical(train_label, num_classes=5)
-        test_label = K.utils.to_categorical(test_label, num_classes=5)
-        train_data = np.squeeze(train_data)
-        test_data = np.squeeze(test_data)
-        train_data = np.transpose(train_data, (0, 2, 1))
-        test_data = np.transpose(test_data, (0, 2, 1))
-
+        dataset["train_data"] = dataset["train_data"].reshape(dataset["train_data"].shape[0], -1)
+        dataset["test_data"] = dataset["test_data"].reshape(dataset["test_data"].shape[0], -1)
+    elif classify_method.lower() in ['cnn', 'rnn']:
+        print('\nReformat data for neural network classifier:')
+        train_label = K.utils.to_categorical(dataset["train_label"], num_classes=5)
+        test_label = K.utils.to_categorical(dataset["test_label"], num_classes=5)
+        if classify_method.lower() in ['rnn']:
+            train_data = np.squeeze(dataset["train_data"])
+            test_data = np.squeeze(dataset["test_data"])
+            train_data = np.transpose(train_data, (0, 2, 1))
+            test_data = np.transpose(test_data, (0, 2, 1))
+        print(train_data.shape)
+        print(test_data.shape)
+        train_data, val_data, train_label, val_label = train_test_split(train_data, train_label, test_size=0.2, random_state=42)
+        print("\nSplit training data into training and validation data:")
+        print("training data: %d" % train_data.shape[0])
+        print("validation data: %d" % val_data.shape[0])
+        dataset = {
+            "train_data": train_data,
+            "train_label": train_label,
+            "val_data": val_data,
+            "val_label": val_label,
+            "test_data": test_data,
+            "test_label": test_label
+        }
+        dataset = normalize(dataset)
     # scaler = StandardScaler()
     # train_data = scaler.fit_transform(train_data)
     # test_data = scaler.fit_transform(test_data)
+    return dataset
 
-    print(train_data.shape)
-    print(test_data.shape)
-
-    return train_data, train_label, test_data, test_label
+def normalize(dataset):
+    train_stats_mean = dataset["train_data"].mean()
+    train_stats_std = dataset["train_data"].std()
+    dataset["train_data"] -= train_stats_mean
+    dataset["train_data"] /= train_stats_std
+    dataset["val_data"] -= train_stats_mean
+    dataset["val_data"] /= train_stats_std
+    dataset["test_data"] -= train_stats_mean
+    dataset["test_data"] /= train_stats_std
+    print("\nAfter normalization:")
+    print("training data: mean %f, std %f" % (dataset["train_data"].mean(), dataset["train_data"].std()))
+    print("validation data: mean %f, std %f" % (dataset["val_data"].mean(), dataset["val_data"].std()))
+    print("test data: mean %f, std %f" % (dataset["test_data"].mean(), dataset["test_data"].std()))
+    return dataset
 
 def write_log(paramset, result, classifier=None, history=None):
     epoch_time = int(time.time())
@@ -232,6 +259,6 @@ def load_model(model_layers, data_shape):
     model = K.models.Model(inputs=nn_input, outputs=x)
     return model
 
-def nnet_fit(model, train_para):
+def nnet_fit(train_data, train_label, model, train_para):
 
     return history
