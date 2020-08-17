@@ -1,5 +1,6 @@
 from os.path import join as pjoin
 from sklearn.model_selection import learning_curve, train_test_split
+from lr_finder import LRFinder
 import tensorflow.keras as K
 import h5py
 import matplotlib.pyplot as plt
@@ -27,11 +28,10 @@ algo_map = {
                        "parameters": {"n_estimators": 200, "learning_rate": 0.1}},
     'xgboost': {"module": "xgboost", "function": "XGBClassifier",
                 "parameters": {}},
-    'nn': {"module": "tensorflow.keras"},
-    'cnn_a': {"module": "nnet_lib", "function": "cnn_a",
-              "parameters": {}},
-    'rnn_a': {"module": "nnet_lib", "function": "rnn_a",
-              "parameters": {}}
+    'piecewise': {"module": "K.callbacks", "function": "LearningRateScheduler"},
+    'one cycle': {"module": "cyclic_lr", "function": "CyclicLR"},
+    'cyclic': {"modeule": "cyclic_lr", "fuction": ""},
+    'sgdr': {"module": "sgdr", "function": "SGDRScheduler"}
 }
 
 def read_file(index, type, rootDir):
@@ -259,6 +259,40 @@ def load_model(model_layers, data_shape):
     model = K.models.Model(inputs=nn_input, outputs=x)
     return model
 
-def nnet_fit(train_data, train_label, model, train_para):
+def nnet_fit(dataset, model, train_para):
+    if "learning_rate" in train_para:
+        opt = getattr(K.optimizers, train_para["optimizer"])(train_para["learning_rate"])
+    else:
+        opt = getattr(K.optimizers, train_para["optimizer"])
+
+    steps = np.ceil(len(dataset["train_label"]) / train_para["batch_size"])
+
+    # learning rate range test
+    lr_finder = LRFinder(model, stop_factor=4)
+    lr_finder.find((dataset["train_data"], dataset["train_label"]), steps_per_epoch=steps, start_lr=1e-6, lr_mult=1.01, batch_size=train_para["batch_size"])
+    lr_finder.plot_loss()
+
+    if "learning_rate_policy" in train_para:
+        if train_para["learning_rate_policy"] == "piecewise":
+            lr_scheduler_class_ = getattr(K.callbacks, algo_map[train_para["learning_rate_policy"]])(
+                piecewise_constant_fn(train_para["learning_rate_schedule"]))
+        else:
+            lr_scheduler_class_ = getattr(K.callbacks, algo_map[train_para["learning_rate_policy"]])(train_para["learning_rate_schedule"])
+        lr_scheduler = lr_scheduler_class_()
+    else:
+        lr_scheduler = None
+
+    history = model.fit(dataset["train_data"],
+                        dataset["train_label"],
+                        epochs=train_para["epochs"],
+                        batch_size=train_para["batch_size"],
+                        verbose=2,
+                        validation_data=(dataset["val_data"], dataset["val_label"]),
+                        callbacks=[lr_scheduler])
 
     return history
+
+def piecewise_constant_fn(epoch, base_lr, step_size, decay_rate):
+
+    lr = base_lr / pow(decay_rate, epoch//step_size)
+    return lr
