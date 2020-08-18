@@ -12,10 +12,14 @@ def train(args):
     with open(params["config"], mode='r') as f:
         paramset = json.load(f)
     data_dir = paramset["root_dir"]
-    samp_rate_t = paramset["sample_rate"]["sample_rate_t"]
-    samp_rate_f = paramset["sample_rate"]["sample_rate_f"]
 
-    train_data_raw, train_label_raw, test_data_raw, test_label_raw = load_data(data_dir, samp_rate_t, samp_rate_f)
+    if "sample_rate" in paramset:
+        samp_rate_t = paramset["sample_rate"]["sample_rate_t"]
+        samp_rate_f = paramset["sample_rate"]["sample_rate_f"]
+    else:
+        samp_rate_t = 1
+        samp_rate_f = 1
+    data_bunch_raw = load_data(data_dir, samp_rate_t, samp_rate_f)
 
     if "dimension_reduction" in paramset:
         dim_reducer = paramset["dimension_reduction"]["method"]
@@ -24,52 +28,49 @@ def train(args):
         print('\nbegin dimensionality reduction process.')
         module = importlib.import_module(algo_map[dim_reducer]["module"])
         reducer = getattr(module, algo_map[dim_reducer]["function"])(**algo_map[dim_reducer]["parameters"])
-        train_data, train_label, test_data, test_label = preprocess_data(train_data_raw, train_label_raw, test_data_raw, test_label_raw, dim_reducer)
-        reducer.fit(train_data)
-        train_data = reducer.transform(train_data)
-        test_data = reducer.transform(test_data)
+        data_bunch = preprocess_data(data_bunch_raw, dim_reducer)
+        reducer.fit(data_bunch["train_data"])
+        data_bunch["train_data"] = reducer.transform(data_bunch["train_data"])
+        data_bunch["test_data"] = reducer.transform(data_bunch["test_data"])
         print('\nafter dimensionality reduction:')
-        print(train_data.shape)
-        print(test_data.shape)
+        print(data_bunch["train_data"].shape)
+        print(data_bunch["test_data"].shape)
 
-    print('\nbegin training process.')
     classify_method = paramset["classifier"]["method"]
     classify_parameter = paramset["classifier"]["parameter"]
-    if "dimension_reduction" not in paramset:
-        train_data, train_label, test_data, test_label = preprocess_data(train_data_raw, train_label_raw, test_data_raw, test_label_raw, classify_method)
-    module = importlib.import_module(algo_map[classify_method]["module"])
-
-    if classify_method == "nn":
-        classifier = load_model(paramset["classifier"]["model"], train_data.shape)
-        history = nnet_fit(train_data, train_label, classifier, paramset["classifier"]["parameter"])
+    if classify_method == "cnn" or "rnn":
+        data_bunch = preprocess_data(data_bunch_raw, classify_method)
+        classifier = load_model(paramset["classifier"]["model"], data_bunch["train_data"].shape)
+        history = nnet_fit(data_bunch, classifier, paramset["classifier"]["parameter"])
         plot_learncurve(classify_method, history)
     else:
+        module = importlib.import_module(algo_map[classify_method]["module"])
         classifier = getattr(module, algo_map[classify_method]["function"])(**classify_parameter)
-        classifier.fit(train_data, train_label)
-        plot_learncurve(classify_method, estimator=classifier, data=train_data, label=train_label, train_sizes=np.linspace(0.05, 0.2, 5))
+        classifier.fit(data_bunch["train_data"], data_bunch["train_label"])
+        plot_learncurve(classify_method, estimator=classifier, data=data_bunch["train_data"], label=data_bunch["train_label"], train_sizes=np.linspace(0.05, 0.2, 5))
 
     print('\npredict for test data.')
-    test_pred = classifier.predict(test_data)
-    train_pred = classifier.predict(train_data)
+    test_pred = classifier.predict(data_bunch["test_data"])
+    train_pred = classifier.predict(data_bunch["train_data"])
 
     if len(test_pred.shape) > 1:
         test_pred = np.argmax(test_pred, axis=1)
         train_pred = np.argmax(train_pred, axis=1)
-        test_label = np.argmax(test_label, axis=1)
-        train_label = np.argmax(train_label, axis=1)
+        test_label = np.argmax(data_bunch["test_label"], axis=1)
+        train_label = np.argmax(data_bunch["train_label"], axis=1)
 
     print('\nevaluate the prediction(train data).')
-    train_conf = confusion_matrix(train_label, train_pred)
-    train_precision = precision_score(train_label, train_pred, average=None)
-    train_recall = recall_score(train_label, train_pred, average=None)
+    train_conf = confusion_matrix(data_bunch["train_label"], train_pred)
+    train_precision = precision_score(data_bunch["train_label"], train_pred, average=None)
+    train_recall = recall_score(data_bunch["train_label"], train_pred, average=None)
     print(train_conf)
     print(train_precision)
     print(train_recall)
 
     print('\nevaluate the prediction(test data).')
-    test_conf = confusion_matrix(test_label, test_pred)
-    test_precision = precision_score(test_label, test_pred, average=None)
-    test_recall = recall_score(test_label, test_pred, average=None)
+    test_conf = confusion_matrix(data_bunch["test_label"], test_pred)
+    test_precision = precision_score(data_bunch["test_label"], test_pred, average=None)
+    test_recall = recall_score(data_bunch["test_label"], test_pred, average=None)
     print(test_conf)
     print(test_precision)
     print(test_recall)
@@ -93,8 +94,8 @@ def train(args):
     print(log_file)
 
     if params["show_misclassified"]:
-        indices = [i for i in range(len(test_label)) if test_pred[i] != test_label[i]]
-        show_data(test_data_raw[indices], test_label[indices], indices, test_pred[indices])
+        indices = [i for i in range(len(data_bunch["test_label"])) if test_pred[i] != data_bunch["test_label"][i]]
+        show_data(data_bunch_raw["test_data"][indices], data_bunch["test_label"][indices], indices, test_pred[indices])
 
 
 def show_data(data, label, indices, pred=[]):
