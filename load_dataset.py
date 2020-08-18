@@ -6,6 +6,8 @@ import h5py
 import matplotlib.pyplot as plt
 import numpy as np
 import time
+import importlib
+
 
 algo_map = {
     'pca': {"module": "sklearn.decomposition", "function": "PCA",
@@ -28,8 +30,8 @@ algo_map = {
                        "parameters": {"n_estimators": 200, "learning_rate": 0.1}},
     'xgboost': {"module": "xgboost", "function": "XGBClassifier",
                 "parameters": {}},
-    'piecewise': {"module": "K.callbacks", "function": "LearningRateScheduler"},
-    'one cycle': {"module": "cyclic_lr", "function": "CyclicLR"},
+    'multi_step': {"module": "multistep_lr", "function": "MultiStepLR"},
+    'one_cycle': {"module": "cyclic_lr", "function": "CyclicLR"},
     'cyclic': {"modeule": "cyclic_lr", "fuction": ""},
     'sgdr': {"module": "sgdr", "function": "SGDRScheduler"}
 }
@@ -272,6 +274,7 @@ def nnet_fit(dataset, model, train_para):
         opt = getattr(K.optimizers, train_para["optimizer"])(train_para["learning_rate"])
     else:
         opt = getattr(K.optimizers, train_para["optimizer"])
+    model.compile(optimizer=opt, loss=train_para["loss"], metrics=[train_para["metrics"]])
 
     steps = np.ceil(len(dataset["train_label"]) / train_para["batch_size"])
 
@@ -281,11 +284,9 @@ def nnet_fit(dataset, model, train_para):
     # lr_finder.plot_loss()
 
     if "learning_rate_policy" in train_para:
-        if train_para["learning_rate_policy"] == "piecewise":
-            lr_scheduler = getattr(K.callbacks, algo_map["piecewise"]["function"])(piecewise_constant_decay(**train_para["learning_rate_schedule"]))
-        else:
-            lr_scheduler = getattr(K.callbacks, algo_map[train_para["learning_rate_policy"]]["function"])(**train_para["learning_rate_schedule"])
-        #lr_scheduler = lr_scheduler_class_()
+        lr_policy = train_para["learning_rate_policy"]
+        module = importlib.import_module(algo_map[lr_policy]["module"])
+        lr_scheduler = getattr(module, algo_map[lr_policy]["function"])(**train_para["learning_rate_schedule"])
     else:
         lr_scheduler = None
     print('\nBegin training process.')
@@ -296,6 +297,13 @@ def nnet_fit(dataset, model, train_para):
                         verbose=2,
                         validation_data=(dataset["val_data"], dataset["val_label"]),
                         callbacks=[lr_scheduler])
+    if 'lr' in lr_scheduler.history:
+        plt.figure(1)
+        plt.plot(lr_scheduler.history['lr'])
+        plt.xlabel('iterations')
+        plt.ylabel('learning rate')
+        plt.title('Learning Rate Schedule')
+        plt.show()
 
     return history
 
