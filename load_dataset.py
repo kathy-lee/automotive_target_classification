@@ -107,9 +107,11 @@ def preprocess_data(dataset, classify_method):
         print('\nReformat data for neural network classifier:')
         train_label = K.utils.to_categorical(dataset["train_label"], num_classes=5)
         test_label = K.utils.to_categorical(dataset["test_label"], num_classes=5)
+        train_data = dataset["train_data"]
+        test_data = dataset["test_data"]
         if classify_method.lower() in ['rnn']:
-            train_data = np.squeeze(dataset["train_data"])
-            test_data = np.squeeze(dataset["test_data"])
+            train_data = np.squeeze(train_data)
+            test_data = np.squeeze(test_data)
             train_data = np.transpose(train_data, (0, 2, 1))
             test_data = np.transpose(test_data, (0, 2, 1))
         print(train_data.shape)
@@ -249,17 +251,23 @@ def without_keys(dict, keys):
     return {x: dict[x] for x in dict if x not in keys}
 
 def load_model(model_layers, data_shape):
+    print('\nload nn model.')
     nn_input = K.layers.Input(data_shape[1:])
-    for i, layer in enumerate(model_layers):
-        para = without_keys(layer, {"name", "type"})
+    for i, layer_dict in enumerate(model_layers):
+        para = without_keys(layer_dict, {"name", "type"})
+        layer = getattr(K.layers, layer_dict["type"])(**para)
+        #layer_class_ = getattr(K.layers, layer_dict["type"])(**para)
+        #layer = layer_class_(para)
         if i == 0:
-            x = getattr(K, layer["type"])(para)(nn_input)
+            x = layer(nn_input)
         else:
-            x = getattr(K, layer["type"])(para)(x)
+            x = layer(x)
+
     model = K.models.Model(inputs=nn_input, outputs=x)
     return model
 
 def nnet_fit(dataset, model, train_para):
+
     if "learning_rate" in train_para:
         opt = getattr(K.optimizers, train_para["optimizer"])(train_para["learning_rate"])
     else:
@@ -268,20 +276,19 @@ def nnet_fit(dataset, model, train_para):
     steps = np.ceil(len(dataset["train_label"]) / train_para["batch_size"])
 
     # learning rate range test
-    lr_finder = LRFinder(model, stop_factor=4)
-    lr_finder.find((dataset["train_data"], dataset["train_label"]), steps_per_epoch=steps, start_lr=1e-6, lr_mult=1.01, batch_size=train_para["batch_size"])
-    lr_finder.plot_loss()
+    # lr_finder = LRFinder(model, stop_factor=4)
+    # lr_finder.find((dataset["train_data"], dataset["train_label"]), steps_per_epoch=steps, start_lr=1e-6, lr_mult=1.01, batch_size=train_para["batch_size"])
+    # lr_finder.plot_loss()
 
     if "learning_rate_policy" in train_para:
         if train_para["learning_rate_policy"] == "piecewise":
-            lr_scheduler_class_ = getattr(K.callbacks, algo_map[train_para["learning_rate_policy"]])(
-                piecewise_constant_fn(train_para["learning_rate_schedule"]))
+            lr_scheduler = getattr(K.callbacks, algo_map["piecewise"]["function"])(piecewise_constant_decay(**train_para["learning_rate_schedule"]))
         else:
-            lr_scheduler_class_ = getattr(K.callbacks, algo_map[train_para["learning_rate_policy"]])(train_para["learning_rate_schedule"])
-        lr_scheduler = lr_scheduler_class_()
+            lr_scheduler = getattr(K.callbacks, algo_map[train_para["learning_rate_policy"]]["function"])(**train_para["learning_rate_schedule"])
+        #lr_scheduler = lr_scheduler_class_()
     else:
         lr_scheduler = None
-
+    print('\nBegin training process.')
     history = model.fit(dataset["train_data"],
                         dataset["train_label"],
                         epochs=train_para["epochs"],
@@ -292,7 +299,7 @@ def nnet_fit(dataset, model, train_para):
 
     return history
 
-def piecewise_constant_fn(epoch, base_lr, step_size, decay_rate):
+def piecewise_constant_decay(epoch, base_lr, step_size, decay_rate):
 
     lr = base_lr / pow(decay_rate, epoch//step_size)
     return lr
