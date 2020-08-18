@@ -7,6 +7,7 @@ import numpy as np
 from sklearn.metrics import confusion_matrix, precision_score, recall_score
 from load_dataset import load_data, write_log, algo_map, preprocess_data, plot_learncurve, load_model, nnet_fit
 
+
 def train(args):
     params = vars(args)
     with open(params["config"], mode='r') as f:
@@ -60,17 +61,17 @@ def train(args):
         train_label = np.argmax(data_bunch["train_label"], axis=1)
 
     print('\nevaluate the prediction(train data).')
-    train_conf = confusion_matrix(data_bunch["train_label"], train_pred)
-    train_precision = precision_score(data_bunch["train_label"], train_pred, average=None)
-    train_recall = recall_score(data_bunch["train_label"], train_pred, average=None)
+    train_conf = confusion_matrix(train_label, train_pred)
+    train_precision = precision_score(train_label, train_pred, average=None)
+    train_recall = recall_score(train_label, train_pred, average=None)
     print(train_conf)
     print(train_precision)
     print(train_recall)
 
     print('\nevaluate the prediction(test data).')
-    test_conf = confusion_matrix(data_bunch["test_label"], test_pred)
-    test_precision = precision_score(data_bunch["test_label"], test_pred, average=None)
-    test_recall = recall_score(data_bunch["test_label"], test_pred, average=None)
+    test_conf = confusion_matrix(test_label, test_pred)
+    test_precision = precision_score(test_label, test_pred, average=None)
+    test_recall = recall_score(test_label, test_pred, average=None)
     print(test_conf)
     print(test_precision)
     print(test_recall)
@@ -105,8 +106,7 @@ def show_data(data, label, indices, pred=[]):
     plt.imshow(data[CURSOR, :, :, 0])
     global CATEGORY_LIST
     CATEGORY_LIST = ['1 pedestrian', '1 bicyclist', '1 pedestrian and 1 bicyclist', '2 pedestrians', '2 bicyclists']
-    title = 'sample index:' + str(indices[CURSOR]) \
-            + ', category: ' + str(CATEGORY_LIST[label[CURSOR]])
+    title = 'sample index:' + str(indices[CURSOR]) + ', category: ' + str(CATEGORY_LIST[label[CURSOR]])
     if len(pred) > 0:
         title += ', misclassified as: ' + str(CATEGORY_LIST[pred[CURSOR]])
     plt.title(title)
@@ -123,8 +123,7 @@ def show_data(data, label, indices, pred=[]):
         sys.stdout.flush()
         plt.imshow(data[CURSOR, :, :, 0])
         global CATEGORY_LIST
-        title = 'sample index:' + str(indices[CURSOR]) \
-                + ', category: ' + str(CATEGORY_LIST[label[CURSOR]])
+        title = 'sample index:' + str(indices[CURSOR]) + ', category: ' + str(CATEGORY_LIST[label[CURSOR]])
         if len(pred) > 0:
             title += ', misclassified as: ' + str(CATEGORY_LIST[pred[CURSOR]])
         plt.title(title)
@@ -166,6 +165,7 @@ def main():
     except AttributeError:
         parser.print_help()
         parser.exit()
+
 
 if __name__ == "__main__":
     main()
