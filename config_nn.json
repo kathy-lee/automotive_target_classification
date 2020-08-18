@@ -5,12 +5,12 @@
     "sample_rate_f": 2
   },
   "classifier": {
-    "method": "nn",
+    "method": "cnn",
     "parameter": {
       "optimizer": "Adam",
-      "learning_rate_schedule": "piecewise",
-      "learning_rate_policy": {
-        "base_lr": 3e-4
+      "learning_rate_policy": "piecewise",
+      "learning_rate_schedule": {
+        "base_lr": 3e-4,
         "step_size": 10,
         "decay_rate": 2
       },
@@ -24,13 +24,11 @@
       {
         "name": "layer_01",
         "type": "Conv2D",
-        "filter_height": 3,
-        "filter_width": 3,
-        "channel": 32,
-        "initializer": "he_norm",
+        "kernel_size": 3,
+        "filters": 32,
+        "kernel_initializer": "he_normal",
         "activation": "relu",
-        "padding": "same",
-        "regularizer": "None"
+        "padding": "same"
       },
       {
         "name": "layer_02",
@@ -39,13 +37,11 @@
       {
         "name": "layer_03",
         "type": "Conv2D",
-        "filter_height": 3,
-        "filter_width": 3,
-        "channel": 64,
-        "initializer": "he_norm",
+        "kernel_size": 3,
+        "filters": 64,
+        "kernel_initializer": "he_normal",
         "activation": "relu",
-        "padding": "same",
-        "regularizer": "None"
+        "padding": "same"
       },
       {
         "name": "layer_04",
@@ -54,13 +50,11 @@
       {
         "name": "layer_05",
         "type": "Conv2D",
-        "filter_height": 3,
-        "filter_width": 3,
-        "channel": 128,
-        "initializer": "he_norm",
+        "kernel_size": 3,
+        "filters": 128,
+        "kernel_initializer": "he_normal",
         "activation": "relu",
-        "padding": "same",
-        "regularizer": "None"
+        "padding": "same"
       },
       {
         "name": "layer_06",
@@ -69,13 +63,11 @@
       {
         "name": "layer_07",
         "type": "Conv2D",
-        "filter_height": 3,
-        "filter_width": 3,
-        "channel": 256,
-        "initializer": "he_norm",
+        "kernel_size": 3,
+        "filters": 256,
+        "kernel_initializer": "he_normal",
         "activation": "relu",
-        "padding": "same",
-        "regularizer": "None"
+        "padding": "same"
       },
       {
         "name": "layer_08",
@@ -84,13 +76,11 @@
       {
         "name": "layer_09",
         "type": "Conv2D",
-        "filter_height": 3,
-        "filter_width": 3,
-        "channel": 256,
-        "initializer": "he_norm",
+        "kernel_size": 3,
+        "filters": 256,
+        "kernel_initializer": "he_normal",
         "activation": "relu",
-        "padding": "same",
-        "regularizer": "None"
+        "padding": "same"
       },
       {
         "name": "layer_10",
