@@ -88,10 +88,10 @@ def load_data(root_dir, samp_rate_t=1, samp_rate_f=1, file_num_train=1, file_num
                                                                           np.count_nonzero(train_label == 4),
                                                                           np.count_nonzero(train_label == 0)))
     print("Data sample distribution in test set: %d %d %d %d %d" % (np.count_nonzero(test_label == 1),
-                                                                          np.count_nonzero(test_label == 2),
-                                                                          np.count_nonzero(test_label == 3),
-                                                                          np.count_nonzero(test_label == 4),
-                                                                          np.count_nonzero(test_label == 0)))
+                                                                    np.count_nonzero(test_label == 2),
+                                                                    np.count_nonzero(test_label == 3),
+                                                                    np.count_nonzero(test_label == 4),
+                                                                    np.count_nonzero(test_label == 0)))
     dataset = {
         "train_data": train_data,
         "train_label": train_label,
@@ -210,7 +210,12 @@ def write_log(paramset, result, classifier=None, history=None):
             f.write("\nvalidation loss: \n" )
             f.write(' '.join(map(str, history.history['val_loss'])))
             f.write("\n\n")
-            classifier.summary(print_fn=lambda x: f.write(x + '\n'))
+            #classifier.summary(print_fn=lambda x: f.write(x + '\n'))
+            f.write("MODEL ARCHITECTURE:\n")
+            for layer in paramset["classifier"]["model"]:
+                for key, value in layer.items():
+                    f.write("%s : %s\t" % (key, str(value)))
+                f.write("\n")
     return filename
 
 
