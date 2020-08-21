@@ -48,7 +48,8 @@ def train(args):
         module = importlib.import_module(algo_map[classify_method]["module"])
         classifier = getattr(module, algo_map[classify_method]["function"])(**classify_parameter)
         classifier.fit(data_bunch["train_data"], data_bunch["train_label"])
-        plot_learncurve(classify_method, estimator=classifier, data=data_bunch["train_data"], label=data_bunch["train_label"], train_sizes=np.linspace(0.05, 0.2, 5))
+        plot_learncurve(classify_method, estimator=classifier, data=data_bunch["train_data"],
+                        label=data_bunch["train_label"], train_sizes=np.linspace(0.05, 0.2, 5))
 
     print('\npredict for test data.')
     test_pred = classifier.predict(data_bunch["test_data"])
@@ -87,11 +88,10 @@ def train(args):
 
     print('\ngenerate report file \t')
     #log_file = write_log(paramset, pred_result)
-    if algo_map[classify_method]["module"] == "nnet_lib":
+    if classify_method == "cnn" or "rnn":
         log_file = write_log(paramset, pred_result, classifier, history)
     else:
         log_file = write_log(paramset, pred_result)
-
     print(log_file)
 
     if params["show_misclassified"]:

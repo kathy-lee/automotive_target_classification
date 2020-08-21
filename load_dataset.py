@@ -1,7 +1,7 @@
 from os.path import join as pjoin
 from sklearn.model_selection import learning_curve, train_test_split
 from lr_finder import LRFinder
-import tensorflow.keras as K
+import keras as K
 import h5py
 import matplotlib.pyplot as plt
 import numpy as np
@@ -36,45 +36,47 @@ algo_map = {
     'sgdr': {"module": "sgdr", "function": "SGDRScheduler"}
 }
 
-def read_file(index, type, rootDir):
+
+def read_file(index, data_type, root_dir):
     file_index = "{0:02d}".format(index)
     if index == 0:
-        file_name = type + 'NoCar' + '.h5'
+        file_name = data_type + 'NoCar' + '.h5'
     else:
-        file_name = type + 'NoCar_' + file_index + '.h5'
-    file_name = pjoin(rootDir, file_name)
+        file_name = data_type + 'NoCar_' + file_index + '.h5'
+    file_name = pjoin(root_dir, file_name)
     print(file_name)
     f = h5py.File(file_name, 'r')
     key = list(f.keys())[0]
     data = np.array(f[key])
     return data
 
-def load_data(rootDir, sampRateT=1, sampRateF=1, lenTrain=1, lenTest=1):
+
+def load_data(root_dir, samp_rate_t=1, samp_rate_f=1, file_num_train=1, file_num_test=1):
     print('load the data.')
     train_data = np.array([])
 
-    for i in range(1,lenTrain+1):
-        dataBlock = read_file(i, 'trainData', rootDir)
-        dataBlock = dataBlock[:,:,0::sampRateT,0::sampRateF]
-        train_data = np.vstack([train_data, dataBlock]) if train_data.size else dataBlock
+    for i in range(1,file_num_train+1):
+        data_block = read_file(i, 'trainData', root_dir)
+        data_block = data_block[:,:,0::samp_rate_t,0::samp_rate_f]
+        train_data = np.vstack([train_data, data_block]) if train_data.size else data_block
 
     test_data = np.array([])
-    for i in range(1,lenTest+1):
-        dataBlock = read_file(i, 'testData', rootDir)
-        dataBlock = dataBlock[:, :, 0::sampRateT, 0::sampRateF]
-        test_data = np.vstack([test_data, dataBlock]) if test_data.size else dataBlock
+    for i in range(1,file_num_test+1):
+        data_block = read_file(i, 'testData', root_dir)
+        data_block = data_block[:, :, 0::samp_rate_t, 0::samp_rate_f]
+        test_data = np.vstack([test_data, data_block]) if test_data.size else data_block
 
     train_data = np.transpose(train_data, (0, 3, 2, 1))
     test_data = np.transpose(test_data, (0, 3, 2, 1))
 
     # read label
-    train_label = read_file(0, 'trainLabel', rootDir)
+    train_label = read_file(0, 'trainLabel', root_dir)
     train_label = train_label.flatten()
-    train_label = train_label[:lenTrain*1000]
+    train_label = train_label[:file_num_train*1000]
     train_label -= 1
-    test_label = read_file(0, 'testLabel', rootDir)
+    test_label = read_file(0, 'testLabel', root_dir)
     test_label = test_label.flatten()
-    test_label = test_label[:lenTest*1000]
+    test_label = test_label[:file_num_test*1000]
     test_label -= 1
 
     print(train_data.shape)
@@ -98,10 +100,13 @@ def load_data(rootDir, sampRateT=1, sampRateF=1, lenTrain=1, lenTest=1):
     }
     return dataset
 
+
 def preprocess_data(dataset, classify_method):
 
-    if classify_method.lower() in ['pca', 'lda', 'ica', 'lr', 'svm', 'decision tree', 'knn',
-                                    'random forest', 'ada boost', 'gradient boost', 'xgboost']:
+    if classify_method.lower() in [
+        'pca', 'lda', 'ica', 'lr', 'svm', 'decision tree', 'knn',
+        'random forest', 'ada boost', 'gradient boost', 'xgboost'
+    ]:
         print('\nReformat data for ML classifier:')
         dataset["train_data"] = dataset["train_data"].reshape(dataset["train_data"].shape[0], -1)
         dataset["test_data"] = dataset["test_data"].reshape(dataset["test_data"].shape[0], -1)
@@ -118,7 +123,8 @@ def preprocess_data(dataset, classify_method):
             test_data = np.transpose(test_data, (0, 2, 1))
         print(train_data.shape)
         print(test_data.shape)
-        train_data, val_data, train_label, val_label = train_test_split(train_data, train_label, test_size=0.2, random_state=42)
+        train_data, val_data, train_label, val_label = train_test_split(train_data, train_label, test_size=0.2,
+                                                                        random_state=42)
         print("\nSplit training data into training and validation data:")
         print("training data: %d" % train_data.shape[0])
         print("validation data: %d" % val_data.shape[0])
@@ -136,6 +142,7 @@ def preprocess_data(dataset, classify_method):
     # test_data = scaler.fit_transform(test_data)
     return dataset
 
+
 def normalize(dataset):
     train_stats_mean = dataset["train_data"].mean()
     train_stats_std = dataset["train_data"].std()
@@ -150,6 +157,7 @@ def normalize(dataset):
     print("validation data: mean %f, std %f" % (dataset["val_data"].mean(), dataset["val_data"].std()))
     print("test data: mean %f, std %f" % (dataset["test_data"].mean(), dataset["test_data"].std()))
     return dataset
+
 
 def write_log(paramset, result, classifier=None, history=None):
     epoch_time = int(time.time())
@@ -205,6 +213,7 @@ def write_log(paramset, result, classifier=None, history=None):
             classifier.summary(print_fn=lambda x: f.write(x + '\n'))
     return filename
 
+
 def plot_learncurve(title, history=None, estimator=None, data=None, label=None, train_sizes=None):
     if estimator is None:
         plt.figure()
@@ -234,14 +243,11 @@ def plot_learncurve(title, history=None, estimator=None, data=None, label=None, 
         test_scores_std = np.std(test_scores, axis=1)
         plt.figure()
         plt.fill_between(train_sizes, train_scores_mean - train_scores_std,
-                         train_scores_mean + train_scores_std, alpha=0.1,
-                         color="r")
+                         train_scores_mean + train_scores_std, alpha=0.1, color="r")
         plt.fill_between(train_sizes, test_scores_mean - test_scores_std,
                          test_scores_mean + test_scores_std, alpha=0.1, color="g")
-        plt.plot(train_sizes, train_scores_mean, 'o-', color="r",
-                 label="Training score")
-        plt.plot(train_sizes, test_scores_mean, 'o-', color="g",
-                 label="Cross-validation score")
+        plt.plot(train_sizes, train_scores_mean, 'o-', color="r", label="Training score")
+        plt.plot(train_sizes, test_scores_mean, 'o-', color="g", label="Cross-validation score")
         plt.xlabel("Training examples")
         plt.ylabel("Score")
         plt.legend(loc="best")
@@ -249,8 +255,10 @@ def plot_learncurve(title, history=None, estimator=None, data=None, label=None, 
         plt.title(title)
         plt.show()
 
-def without_keys(dict, keys):
-    return {x: dict[x] for x in dict if x not in keys}
+
+def without_keys(dic, keys):
+    return {x: dic[x] for x in dic if x not in keys}
+
 
 def load_model(model_layers, data_shape):
     print('\nload nn model.')
@@ -268,6 +276,7 @@ def load_model(model_layers, data_shape):
     model = K.models.Model(inputs=nn_input, outputs=x)
     return model
 
+
 def nnet_fit(dataset, model, train_para):
 
     if "learning_rate" in train_para:
@@ -280,7 +289,8 @@ def nnet_fit(dataset, model, train_para):
 
     # learning rate range test
     # lr_finder = LRFinder(model, stop_factor=4)
-    # lr_finder.find((dataset["train_data"], dataset["train_label"]), steps_per_epoch=steps, start_lr=1e-6, lr_mult=1.01, batch_size=train_para["batch_size"])
+    # lr_finder.find((dataset["train_data"], dataset["train_label"]), steps_per_epoch=steps, start_lr=1e-6,
+    #                lr_mult=1.01, batch_size=train_para["batch_size"])
     # lr_finder.plot_loss()
 
     if "learning_rate_policy" in train_para:
@@ -298,16 +308,16 @@ def nnet_fit(dataset, model, train_para):
                         validation_data=(dataset["val_data"], dataset["val_label"]),
                         callbacks=[lr_scheduler])
     if 'lr' in lr_scheduler.history:
-        plt.figure(1)
+        plt.figure()
         plt.plot(lr_scheduler.history['lr'])
         plt.xlabel('iterations')
         plt.ylabel('learning rate')
         plt.title('Learning Rate Schedule')
-        plt.show()
+        plt.show(block=False)
 
     return history
 
-def piecewise_constant_decay(epoch, base_lr, step_size, decay_rate):
 
+def piecewise_constant_decay(epoch, base_lr, step_size, decay_rate):
     lr = base_lr / pow(decay_rate, epoch//step_size)
     return lr
