@@ -6,6 +6,10 @@ This dataset is based on matlab simulation. See [here](https://www.mathworks.com
 
 ## Usage
 
+The project is able to:
+1. Visualization of data. User can use cursor to browse spectrogram images of training/test dataset.
+2. Object classification and show misclassified results. User needs to prepare classfication configuration file. After classification, the misclassified spectrograms can be shown with true label and misclassified label. At the end of classification a txt log file will be generated, which includes classification algorithm configuration parameter and classification performance evaluation.
+
 ### Environment
 
 * Ubuntu 18.04
@@ -20,6 +24,8 @@ This dataset is based on matlab simulation. See [here](https://www.mathworks.com
 2. Convert data and label files to `HDF5` format with *.m and *.m respectively.
 
 ### Configurations
+
+
 
 ### How to run
 
