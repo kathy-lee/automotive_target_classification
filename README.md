@@ -72,9 +72,22 @@ For NN model parameters, users can define sequential layerers in list form, each
 
 ### How to run
 
+#### Data visualization
+
+Run main.py with:
+
+python main.py --show --datadir DATADIRECTORY --start STARTINDEX --type TRAINORTEST
+
+#### Object classification
+
+RUN main.py with:
+
+python main.py --train --config CONFIGFILE --show-misclassified
 
 ### To be added
+
 1. Transfer learning with pretrained model 
+2. Automatically get optimal initial learning rate for NN model 
 
 
 
