@@ -99,21 +99,23 @@ def train(args):
         show_data(data_bunch_raw["test_data"][indices], data_bunch["test_label"][indices], indices, test_pred[indices])
 
 
-def show_data(data, label, indices, pred=[]):
+def show_data(data, label, indices, pred=None):
     fig = plt.figure()
     global CURSOR
+    global CATEGORY_LIST
+
     CURSOR = 0
     plt.imshow(data[CURSOR, :, :, 0])
-    global CATEGORY_LIST
     CATEGORY_LIST = ['1 pedestrian', '1 bicyclist', '1 pedestrian and 1 bicyclist', '2 pedestrians', '2 bicyclists']
     title = 'sample index:' + str(indices[CURSOR]) + ', category: ' + str(CATEGORY_LIST[label[CURSOR]])
-    if len(pred) > 0:
+    if pred is not None:
         title += ', misclassified as: ' + str(CATEGORY_LIST[pred[CURSOR]])
     plt.title(title)
     fig.canvas.draw()
 
     def press(event):
         global CURSOR
+        global CATEGORY_LIST
         if event.key == 'escape':
             sys.exit(0)
         if event.key == 'left' or event.key == 'up':
@@ -122,9 +124,8 @@ def show_data(data, label, indices, pred=[]):
             CURSOR = CURSOR + 1 if CURSOR < data.shape[0] - 1 else data.shape[0] - 1
         sys.stdout.flush()
         plt.imshow(data[CURSOR, :, :, 0])
-        global CATEGORY_LIST
         title = 'sample index:' + str(indices[CURSOR]) + ', category: ' + str(CATEGORY_LIST[label[CURSOR]])
-        if len(pred) > 0:
+        if pred is not None:
             title += ', misclassified as: ' + str(CATEGORY_LIST[pred[CURSOR]])
         plt.title(title)
         fig.canvas.draw()
@@ -136,13 +137,13 @@ def show_data(data, label, indices, pred=[]):
 
 def show(args):
     params = vars(args)
-    train_data, train_label, test_data, test_label = load_data(params["datadir"], 1, 1)
+    data_bunch = load_data(params["datadir"], 1, 1)
     if params["type"] == "train":
-        indices = np.arange(params["start"], train_data.shape[0]-1)
-        show_data(train_data[params["start"]:], train_label[params["start"]:], indices)
+        indices = np.arange(params["start"], data_bunch["train_data"].shape[0]-1)
+        show_data(data_bunch["train_data"][params["start"]:], data_bunch["train_label"][params["start"]:], indices)
     else:
-        indices = np.arange(params["start"], test_data.shape[0]-1)
-        show_data(test_data[params["start"]:], test_label[params["start"]:], indices)
+        indices = np.arange(params["start"], data_bunch["test_data"].shape[0]-1)
+        show_data(data_bunch["test_data"][params["start"]:], data_bunch["test_label"][params["start"]:], indices)
 
         
 def main():

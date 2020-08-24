@@ -27,7 +27,7 @@ The project is able to:
 
 ### Data preparation
 
-1. Download data from [link](https://www.mathworks.com/supportfiles/SPT/data/PedBicCarData.zip).
+1. Download data from [here](https://www.mathworks.com/supportfiles/SPT/data/PedBicCarData.zip).
 2. Convert data and label files to `HDF5` format with *.m and *.m respectively.
 
 ### Configurations
