@@ -1,4 +1,4 @@
-This is a object classification project based on radar spectrogram image.
+This is a object classification project based on radar spectrogram image. It aims to be a object classification sandkasten which is easy to use.
 
 ## About the dataset
 
