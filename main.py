@@ -20,7 +20,8 @@ def train(args):
     else:
         samp_rate_t = 1
         samp_rate_f = 1
-    data_bunch_raw = load_data(data_dir, samp_rate_t, samp_rate_f)
+    data_bunch = load_data(data_dir, samp_rate_t, samp_rate_f)
+    data_bunch_visual = np.copy(data_bunch)
 
     if "dimension_reduction" in paramset:
         dim_reducer = paramset["dimension_reduction"]["method"]
@@ -29,7 +30,7 @@ def train(args):
         print('\nbegin dimensionality reduction process.')
         module = importlib.import_module(algo_map[dim_reducer]["module"])
         reducer = getattr(module, algo_map[dim_reducer]["function"])(**algo_map[dim_reducer]["parameters"])
-        data_bunch = preprocess_data(data_bunch_raw, dim_reducer)
+        data_bunch = preprocess_data(data_bunch, dim_reducer)
         reducer.fit(data_bunch["train_data"])
         data_bunch["train_data"] = reducer.transform(data_bunch["train_data"])
         data_bunch["test_data"] = reducer.transform(data_bunch["test_data"])
@@ -40,7 +41,7 @@ def train(args):
     classify_method = paramset["classifier"]["method"]
     classify_parameter = paramset["classifier"]["parameter"]
     if classify_method == "cnn" or "rnn":
-        data_bunch = preprocess_data(data_bunch_raw, classify_method)
+        data_bunch = preprocess_data(data_bunch, classify_method)
         classifier = load_model(paramset["classifier"]["model"], data_bunch["train_data"].shape)
         history = nnet_fit(data_bunch, classifier, paramset["classifier"]["parameter"])
         plot_learncurve(classify_method, history)
@@ -54,7 +55,8 @@ def train(args):
     print('\npredict for test data.')
     test_pred = classifier.predict(data_bunch["test_data"])
     train_pred = classifier.predict(data_bunch["train_data"])
-
+    train_label = data_bunch["train_label"]
+    test_label = data_bunch["test_label"]
     if len(test_pred.shape) > 1:
         test_pred = np.argmax(test_pred, axis=1)
         train_pred = np.argmax(train_pred, axis=1)
@@ -87,7 +89,6 @@ def train(args):
     }
 
     print('\ngenerate report file \t')
-    #log_file = write_log(paramset, pred_result)
     if classify_method == "cnn" or "rnn":
         log_file = write_log(paramset, pred_result, classifier, history)
     else:
@@ -96,7 +97,7 @@ def train(args):
 
     if params["show_misclassified"]:
         indices = [i for i in range(len(data_bunch["test_label"])) if test_pred[i] != data_bunch["test_label"][i]]
-        show_data(data_bunch_raw["test_data"][indices], data_bunch["test_label"][indices], indices, test_pred[indices])
+        show_data(data_bunch_visual["test_data"][indices], data_bunch["test_label"][indices], indices, test_pred[indices])
 
 
 def show_data(data, label, indices, pred=None):
