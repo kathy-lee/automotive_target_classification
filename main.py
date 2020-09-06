@@ -5,7 +5,7 @@ import importlib
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.metrics import confusion_matrix, precision_score, recall_score
-from train_helper import load_data, write_log, algo_map, preprocess_data, plot_learncurve, load_model, nnet_fit
+from train_helper import load_data, write_log, algo_map, nn_type, preprocess_data, plot_learncurve, load_model, nnet_fit
 
 
 def train(args):
@@ -40,7 +40,7 @@ def train(args):
 
     classify_method = paramset["classifier"]["method"]
     classify_parameter = paramset["classifier"]["parameter"]
-    if classify_method == "cnn" or "rnn":
+    if classify_method in nn_type:
         data_bunch = preprocess_data(data_bunch, classify_method)
         classifier = load_model(paramset["classifier"]["model"], data_bunch["train_data"].shape)
         history = nnet_fit(data_bunch, classifier, paramset["classifier"]["parameter"])
@@ -89,7 +89,7 @@ def train(args):
     }
 
     print('\ngenerate report file \t')
-    if classify_method == "cnn" or "rnn":
+    if classify_method in nn_type:
         log_file = write_log(paramset, pred_result, classifier, history)
     else:
         log_file = write_log(paramset, pred_result)
@@ -97,6 +97,7 @@ def train(args):
 
     if params["show_misclassified"]:
         indices = [i for i in range(len(data_bunch["test_label"])) if test_pred[i] != data_bunch["test_label"][i]]
+        print(indices)
         show_data(data_bunch_visual["test_data"][indices], data_bunch["test_label"][indices], indices, test_pred[indices])
 
 

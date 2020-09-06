@@ -36,6 +36,7 @@ algo_map = {
     'sgdr': {"module": "sgdr", "function": "SGDRScheduler"}
 }
 
+nn_type = ['cnn', 'cnn']
 
 def read_file(index, data_type, root_dir):
     file_index = "{0:02d}".format(index)
@@ -51,7 +52,7 @@ def read_file(index, data_type, root_dir):
     return data
 
 
-def load_data(root_dir, samp_rate_t=1, samp_rate_f=1, file_num_train=1, file_num_test=1):
+def load_data(root_dir, samp_rate_t=1, samp_rate_f=1, file_num_train=20, file_num_test=5):
     print('load the data.')
     train_data = np.array([])
 
