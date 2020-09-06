@@ -3,7 +3,7 @@ from sklearn.decomposition import PCA
 from sklearn.metrics import confusion_matrix, precision_score, recall_score
 import matplotlib.pyplot as plt
 import numpy as np
-from load_dataset import load_data
+from train_helper import load_data
 
 data_dir = '/home/kangle/dataset/PedBicCarData'
 train_data, train_label, test_data, test_label = load_data(data_dir, 2, 2)

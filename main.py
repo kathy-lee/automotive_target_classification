@@ -5,7 +5,7 @@ import importlib
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.metrics import confusion_matrix, precision_score, recall_score
-from load_dataset import load_data, write_log, algo_map, preprocess_data, plot_learncurve, load_model, nnet_fit
+from train_helper import load_data, write_log, algo_map, preprocess_data, plot_learncurve, load_model, nnet_fit
 
 
 def train(args):

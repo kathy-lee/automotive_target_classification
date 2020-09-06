@@ -4,7 +4,7 @@ from tensorflow.keras.layers import Conv2D,MaxPooling2D,Flatten,Dense,BatchNorma
 from tensorflow.keras.utils import to_categorical, normalize
 from tensorflow.keras.optimizers import schedules, Adam
 import numpy as np
-from load_dataset import load_data, preprocess_data
+from train_helper import load_data, preprocess_data
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from time import process_time

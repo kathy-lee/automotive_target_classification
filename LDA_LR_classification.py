@@ -3,7 +3,7 @@ from sklearn.linear_model import LogisticRegression
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.metrics import confusion_matrix, precision_score, recall_score
-from load_dataset import load_data
+from train_helper import load_data
 
 
 data_dir = '/home/kangle/dataset/PedBicCarData'

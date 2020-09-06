@@ -8,7 +8,7 @@ from tensorflow.keras.regularizers import l1,l2
 from tensorflow.keras.initializers import RandomUniform, GlorotUniform, he_uniform
 from tensorflow.keras.callbacks import LearningRateScheduler, ReduceLROnPlateau, EarlyStopping, TensorBoard, ModelCheckpoint
 from tensorflow.keras.applications import resnet50
-from load_dataset import load_data, preprocess_data, plot_learncurve
+from train_helper import load_data, preprocess_data, plot_learncurve
 from sklearn.model_selection import train_test_split
 from time import process_time
 from lr_finder import LRFinder

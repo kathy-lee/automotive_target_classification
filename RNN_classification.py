@@ -4,7 +4,7 @@ from tensorflow.keras.utils import to_categorical, normalize
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.regularizers import l1,l2
 import numpy as np
-from load_dataset import load_data, preprocess_data, plot_learncurve
+from train_helper import load_data, preprocess_data, plot_learncurve
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from time import process_time

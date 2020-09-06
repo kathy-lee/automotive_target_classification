@@ -4,7 +4,7 @@ from sklearn.manifold import LocallyLinearEmbedding
 from sklearn.metrics import confusion_matrix, precision_score, recall_score
 import matplotlib.pyplot as plt
 import numpy as np
-from load_dataset import load_data
+from train_helper import load_data
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import GridSearchCV
 
