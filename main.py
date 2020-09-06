@@ -21,7 +21,7 @@ def train(args):
         samp_rate_t = 1
         samp_rate_f = 1
     data_bunch = load_data(data_dir, samp_rate_t, samp_rate_f)
-    data_bunch_visual = np.copy(data_bunch)
+    test_data_visual = np.copy(data_bunch["test_data"])
 
     if "dimension_reduction" in paramset:
         dim_reducer = paramset["dimension_reduction"]["method"]
@@ -97,8 +97,7 @@ def train(args):
 
     if params["show_misclassified"]:
         indices = [i for i in range(len(data_bunch["test_label"])) if test_pred[i] != data_bunch["test_label"][i]]
-        print(indices)
-        show_data(data_bunch_visual["test_data"][indices], data_bunch["test_label"][indices], indices, test_pred[indices])
+        show_data(test_data_visual[indices], data_bunch["test_label"][indices], indices, test_pred[indices])
 
 
 def show_data(data, label, indices, pred=None):
